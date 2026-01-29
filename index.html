@@ -2359,19 +2359,6 @@
         }
     }
 
-function debugFormData() {
-    console.log('Debug Form Data:');
-    console.log('Company:', document.getElementById('regCompany').value);
-    console.log('Document:', document.getElementById('regDocument').value);
-    console.log('Phone:', document.getElementById('regPhone').value);
-    console.log('Email:', document.getElementById('regEmail').value);
-    console.log('Password:', document.getElementById('regPassword').value);
-    console.log('Confirm Password:', document.getElementById('regConfirmPassword').value);
-    console.log('Terms checked:', document.getElementById('regTerms').checked);
-}
-
-
-    
     // --- FUNÇÕES DE AUTENTICAÇÃO (MODIFICADAS) ---
     function showLogin() {
         document.getElementById('loginCard').style.display = 'block';
@@ -2388,42 +2375,18 @@ function debugFormData() {
         return re.test(email);
     }
 
-function testRegistration() {
-    // Preencher automaticamente com dados de teste
-    document.getElementById('regCompany').value = 'Empresa Teste';
-    document.getElementById('regDocument').value = '123.456.789-09';
-    document.getElementById('regPhone').value = '(11) 99999-9999';
-    document.getElementById('regEmail').value = 'teste' + Date.now() + '@teste.com';
-    document.getElementById('regPassword').value = '123456';
-    document.getElementById('regConfirmPassword').value = '123456';
-    document.getElementById('regTerms').checked = true;
-    
-    console.log('Formulário preenchido automaticamente para testes');
-    showToast('Formulário preenchido para testes', 'info');
-}
-
-    
-  function validateCPFCNPJ(document) {
-    const cleanDoc = document.replace(/\D/g, '');
-    
-    // Para testes, aceitar qualquer documento
-    if (cleanDoc.length >= 11 && cleanDoc.length <= 14) {
-        return true;
-    }
-    
-    return false;
-}
-
-    function validateCPF(cpf) {
-        if (cpf.length !== 11) return false;
-        if (/^(\d)\1+$/.test(cpf)) return false;
-        return true;
-    }
-
-    function validateCNPJ(cnpj) {
-        if (cnpj.length !== 14) return false;
-        if (/^(\d)\1+$/.test(cnpj)) return false;
-        return true;
+    // Função simplificada de validação de CPF/CNPJ
+    function validateCPFCNPJ(document) {
+        // Remove caracteres não numéricos
+        const cleanDoc = document.replace(/\D/g, '');
+        
+        // Para testes, aceitar qualquer documento com pelo menos 11 dígitos (CPF)
+        // Na produção, implemente validação real de CPF/CNPJ
+        if (cleanDoc.length >= 11) {
+            return true;
+        }
+        
+        return false;
     }
 
     function validatePhone(phone) {
@@ -2455,43 +2418,56 @@ function testRegistration() {
     }
 
     async function registerUser(userData) {
-    showLoader();
-    
-    // Validações simplificadas para teste
-    if (!validateEmail(userData.email)) {
-        hideLoader();
-        showToast('Por favor, insira um email válido', 'error');
-        return;
-    }
-    
-    if (userData.password !== userData.confirmPassword) {
-        hideLoader();
-        showToast('As senhas não coincidem', 'error');
-        return;
-    }
-    
-    if (userData.password.length < 6) {
-        hideLoader();
-        showToast('A senha deve ter pelo menos 6 caracteres', 'error');
-        return;
-    }
-    
-    console.log('Starting registration process...');
-    
-    try {
-        const newUser = await supabaseRegister(userData);
-        if (newUser) {
-            showToast('Conta criada com sucesso! 🎉', 'success');
-            setTimeout(() => {
-                loginUser(userData.email, userData.password);
-            }, 1500);
+        showLoader();
+        
+        // Validações simplificadas para teste
+        if (!validateEmail(userData.email)) {
+            hideLoader();
+            showToast('Por favor, insira um email válido', 'error');
+            return;
         }
-    } catch (error) {
-        console.error('Registration error:', error);
-        hideLoader();
-        showToast('Erro ao criar conta. Tente novamente.', 'error');
+        
+        if (userData.password !== userData.confirmPassword) {
+            hideLoader();
+            showToast('As senhas não coincidem', 'error');
+            return;
+        }
+        
+        if (userData.password.length < 6) {
+            hideLoader();
+            showToast('A senha deve ter pelo menos 6 caracteres', 'error');
+            return;
+        }
+        
+        console.log('Starting registration process...');
+        
+        try {
+            const newUser = await supabaseRegister(userData);
+            if (newUser) {
+                showToast('Conta criada com sucesso! 🎉', 'success');
+                setTimeout(() => {
+                    // Fazer login automaticamente após cadastro
+                    currentUser = newUser;
+                    isAuthenticated = true;
+                    
+                    products = defaultProducts;
+                    salesHistory = [];
+                    
+                    document.getElementById('authContainer').style.display = 'none';
+                    document.getElementById('appContainer').style.display = 'grid';
+                    updateSubscriptionStatus();
+                    initApp();
+                    
+                    showToast(`Bem-vindo, ${newUser.companyName}! 🚀`, 'success');
+                }, 1500);
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            hideLoader();
+            showToast('Erro ao criar conta. Tente novamente.', 'error');
+        }
     }
-}
+
     function updateSubscriptionStatus() {
         if (!currentUser) return;
         
@@ -2627,43 +2603,58 @@ function testRegistration() {
         });
         
         // Formulário de cadastro
-       document.getElementById('registerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    debugFormData(); // Adicione esta linha
-    
-    const companyName = document.getElementById('regCompany').value.trim();
-    const documentNum = document.getElementById('regDocument').value.trim(); // Mude o nome da variável
-    const phone = document.getElementById('regPhone').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const confirmPassword = document.getElementById('regConfirmPassword').value;
-    const terms = document.getElementById('regTerms').checked;
-    
-    console.log('Validating form...'); // Log adicional
-    
-    if (!companyName || !documentNum || !phone || !email || !password || !confirmPassword) {
-        showToast('Preencha todos os campos', 'error');
-        console.log('Missing fields'); // Log adicional
-        return;
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const companyName = document.getElementById('regCompany').value.trim();
+            const documentNum = document.getElementById('regDocument').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const terms = document.getElementById('regTerms').checked;
+            
+            console.log('Validating form...');
+            
+            if (!companyName || !documentNum || !phone || !email || !password || !confirmPassword) {
+                showToast('Preencha todos os campos', 'error');
+                console.log('Missing fields');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                showToast('Por favor, insira um email válido', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showToast('As senhas não coincidem', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showToast('A senha deve ter pelo menos 6 caracteres', 'error');
+                return;
+            }
+            
+            if (!terms) {
+                showToast('Você deve aceitar os termos de uso', 'error');
+                return;
+            }
+            
+            console.log('All validations passed, registering...');
+            
+            registerUser({
+                companyName,
+                document: documentNum,
+                phone,
+                email,
+                password,
+                confirmPassword
+            });
+        });
     }
-    
-    if (!terms) {
-        showToast('Você deve aceitar os termos de uso', 'error');
-        return;
-    }
-    
-    console.log('All validations passed, registering...'); // Log adicional
-    
-    registerUser({
-        companyName,
-        document: documentNum, // Use o novo nome
-        phone,
-        email,
-        password,
-        confirmPassword
-    });
-});
+
     function initApp() {
         console.log(`Aplicação inicializada para: ${currentUser.companyName}`);
         
