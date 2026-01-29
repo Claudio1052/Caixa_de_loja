@@ -1748,14 +1748,30 @@
     <span class="toast-message">Operação realizada com sucesso!</span>
 </div>
 
+<!-- Incluir Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
     // ============================================
-    // SISTEMA PDV MÁGICO PRO - VERSÃO COM LOGIN
+    // SISTEMA PDV MÁGICO PRO - COM SUPABASE
     // ============================================
+
+    // --- CONFIGURAÇÃO DO SUPABASE ---
+    const SUPABASE_URL = 'https://kbucnveojexlxlnefmdo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidWNudmVvamV4bHhsbmVmbWRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTUzOTgsImV4cCI6MjA4NTI3MTM5OH0.usSiBO518-4rdkvVxq1QAi71hCLTicIurfAu2N0gShs';
+
+    // Inicializar cliente Supabase
+    let supabase;
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase inicializado com sucesso');
+    } catch (error) {
+        console.error('Erro ao inicializar Supabase:', error);
+    }
 
     // --- CONFIGURAÇÃO INICIAL ---
     const APP_NAME = "PDV Mágico Pro";
-    const APP_VERSION = "2.1.0";
+    const APP_VERSION = "2.2.0"; // Versão atualizada para Supabase
     const APP_AUTHOR = "Sistema Inteligente";
     const MONTHLY_PRICE = 29.90;
     const TRIAL_DAYS = 7;
@@ -1851,7 +1867,415 @@
         processingTime: 0
     };
 
-    // --- FUNÇÕES DE AUTENTICAÇÃO ---
+    // --- FUNÇÕES SUPABASE ---
+
+    // Função para hash de senha simples (em produção use bcrypt)
+    function hashPassword(password) {
+        // Usando btoa para demonstração - em produção use algo mais seguro
+        return btoa(unescape(encodeURIComponent(password)));
+    }
+
+    async function supabaseLogin(email, password) {
+        showLoader();
+        
+        try {
+            if (!supabase) {
+                throw new Error('Supabase não inicializado');
+            }
+
+            // Buscar usuário
+            const { data: users, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .eq('password_hash', hashPassword(password))
+                .single();
+            
+            if (error) {
+                console.error('Erro no login Supabase:', error);
+                hideLoader();
+                showToast('Email ou senha incorretos', 'error');
+                return null;
+            }
+            
+            if (!users) {
+                hideLoader();
+                showToast('Email ou senha incorretos', 'error');
+                return null;
+            }
+            
+            return {
+                id: users.id,
+                email: users.email,
+                companyName: users.company_name,
+                document: users.document,
+                phone: users.phone,
+                createdAt: users.created_at,
+                plan: users.plan,
+                status: users.status,
+                validUntil: users.valid_until,
+                nextBilling: users.next_billing,
+                isTrial: users.is_trial,
+                paymentMethod: users.payment_method,
+                settings: users.settings
+            };
+        } catch (error) {
+            console.error('Erro no login:', error);
+            hideLoader();
+            showToast('Erro ao conectar ao servidor', 'error');
+            return null;
+        }
+    }
+
+    async function supabaseRegister(userData) {
+        showLoader();
+        
+        try {
+            if (!supabase) {
+                throw new Error('Supabase não inicializado');
+            }
+
+            // Verificar se email já existe
+            const { data: existingUser, error: checkError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('email', userData.email)
+                .single();
+            
+            if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = não encontrado
+                console.error('Erro ao verificar email:', checkError);
+            }
+            
+            if (existingUser) {
+                hideLoader();
+                showToast('Este email já está cadastrado', 'error');
+                return false;
+            }
+            
+            // Calcular datas
+            const now = new Date();
+            const trialEnd = new Date(now);
+            trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+            const nextBilling = new Date(trialEnd);
+            
+            // Inserir usuário
+            const { data: newUser, error: insertError } = await supabase
+                .from('users')
+                .insert([{
+                    email: userData.email,
+                    password_hash: hashPassword(userData.password),
+                    company_name: userData.companyName,
+                    document: userData.document,
+                    phone: userData.phone,
+                    plan: 'professional',
+                    status: 'active',
+                    valid_until: trialEnd.toISOString(),
+                    next_billing: nextBilling.toISOString(),
+                    is_trial: true,
+                    payment_method: 'pending',
+                    settings: {}
+                }])
+                .select()
+                .single();
+            
+            if (insertError) {
+                console.error('Erro ao inserir usuário:', insertError);
+                throw insertError;
+            }
+            
+            // Criar produtos padrão para este usuário
+            await createDefaultProducts(newUser.id);
+            
+            hideLoader();
+            showToast('Conta criada com sucesso! 🎉', 'success');
+            
+            return {
+                id: newUser.id,
+                email: newUser.email,
+                companyName: newUser.company_name,
+                document: newUser.document,
+                phone: newUser.phone,
+                createdAt: newUser.created_at,
+                plan: newUser.plan,
+                status: newUser.status,
+                validUntil: newUser.valid_until,
+                nextBilling: newUser.next_billing,
+                isTrial: newUser.is_trial,
+                paymentMethod: newUser.payment_method,
+                settings: newUser.settings
+            };
+            
+        } catch (error) {
+            console.error('Erro no registro:', error);
+            hideLoader();
+            showToast('Erro ao criar conta: ' + error.message, 'error');
+            return false;
+        }
+    }
+
+    async function createDefaultProducts(userId) {
+        try {
+            if (!supabase) return;
+            
+            const defaultProducts = [
+                { name: 'Hambúrguer Mágico', price: 25.00, stock: 20, emoji: '🍔', category: 'alimento' },
+                { name: 'Poção de Cafeína', price: 8.50, stock: 50, emoji: '☕', category: 'bebida' },
+                { name: 'Donut Estelar', price: 12.00, stock: 15, emoji: '🍩', category: 'alimento' },
+                { name: 'Pizza Infinita', price: 45.00, stock: 8, emoji: '🍕', category: 'alimento' },
+                { name: 'Sushi Zen', price: 60.00, stock: 10, emoji: '🍣', category: 'alimento' },
+                { name: 'Sorvete Nuvem', price: 15.00, stock: 25, emoji: '🍦', category: 'alimento' },
+                { name: 'Pipoca Dourada', price: 10.00, stock: 30, emoji: '🍿', category: 'alimento' },
+                { name: 'Suco Vitamina', price: 12.00, stock: 40, emoji: '🥤', category: 'bebida' },
+                { name: 'Camisa Mágica', price: 89.90, stock: 12, emoji: '👕', category: 'vestuario' },
+                { name: 'Fones Celestial', price: 120.00, stock: 5, emoji: '🎧', category: 'eletronico' },
+            ];
+            
+            const productsWithUserId = defaultProducts.map(product => ({
+                user_id: userId,
+                name: product.name,
+                price: product.price,
+                stock: product.stock,
+                emoji: product.emoji,
+                category: product.category,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }));
+            
+            const { error } = await supabase
+                .from('products')
+                .insert(productsWithUserId);
+            
+            if (error) {
+                console.error('Erro ao criar produtos padrão:', error);
+            }
+        } catch (error) {
+            console.error('Erro em createDefaultProducts:', error);
+        }
+    }
+
+    async function loadUserProducts(userId) {
+        try {
+            if (!supabase || !userId) {
+                console.log('Supabase não disponível ou userId inválido, usando produtos locais');
+                return defaultProducts;
+            }
+
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('user_id', userId)
+                .order('id', { ascending: true });
+            
+            if (error) {
+                console.error('Erro ao carregar produtos:', error);
+                return defaultProducts;
+            }
+            
+            // Transformar dados do Supabase para formato local
+            return data.map((p, index) => ({
+                id: p.id,
+                name: p.name,
+                price: parseFloat(p.price),
+                stock: p.stock,
+                emoji: p.emoji || '📦',
+                category: p.category,
+                barcode: p.barcode,
+                _supabaseId: p.id // Para referência
+            }));
+        } catch (error) {
+            console.error('Erro ao carregar produtos:', error);
+            return defaultProducts;
+        }
+    }
+
+    async function saveProductToSupabase(product, userId) {
+        try {
+            if (!supabase || !userId) return null;
+
+            if (product._supabaseId) {
+                // Atualizar produto existente
+                const { data, error } = await supabase
+                    .from('products')
+                    .update({
+                        name: product.name,
+                        price: product.price,
+                        stock: product.stock,
+                        emoji: product.emoji,
+                        category: product.category,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', product._supabaseId)
+                    .eq('user_id', userId)
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                return data.id;
+            } else {
+                // Inserir novo produto
+                const { data, error } = await supabase
+                    .from('products')
+                    .insert([{
+                        user_id: userId,
+                        name: product.name,
+                        price: product.price,
+                        stock: product.stock,
+                        emoji: product.emoji,
+                        category: product.category
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                return data.id;
+            }
+        } catch (error) {
+            console.error('Erro ao salvar produto no Supabase:', error);
+            throw error;
+        }
+    }
+
+    async function recordSaleToSupabase(saleData, userId) {
+        try {
+            if (!supabase || !userId) {
+                throw new Error('Supabase não disponível');
+            }
+
+            // 1. Registrar a venda
+            const { data: sale, error: saleError } = await supabase
+                .from('sales')
+                .insert([{
+                    id: saleData.id,
+                    user_id: userId,
+                    sale_date: new Date().toISOString(),
+                    subtotal: saleData.subtotal,
+                    discount: saleData.discount,
+                    total: saleData.total,
+                    items_count: saleData.itemsCount,
+                    payment_method: saleData.method,
+                    processing_time: saleData.processingTime
+                }])
+                .select()
+                .single();
+            
+            if (saleError) throw saleError;
+            
+            // 2. Registrar os itens da venda
+            const saleItems = saleData.items.map(item => ({
+                sale_id: saleData.id,
+                product_id: item._supabaseId || item.id,
+                product_name: item.name,
+                quantity: item.qty,
+                unit_price: item.price,
+                total_price: item.price * item.qty
+            }));
+            
+            const { error: itemsError } = await supabase
+                .from('sale_items')
+                .insert(saleItems);
+            
+            if (itemsError) throw itemsError;
+            
+            // 3. Atualizar estoque dos produtos
+            for (const item of saleData.items) {
+                if (item._supabaseId) {
+                    await supabase
+                        .from('products')
+                        .update({ stock: supabase.sql`stock - ${item.qty}` })
+                        .eq('id', item._supabaseId)
+                        .eq('user_id', userId);
+                }
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Erro ao registrar venda:', error);
+            throw error;
+        }
+    }
+
+    async function loadSalesHistoryFromSupabase(userId, filter = 'all') {
+        try {
+            if (!supabase || !userId) {
+                console.log('Supabase não disponível, usando histórico local');
+                return salesHistory;
+            }
+
+            let query = supabase
+                .from('sales')
+                .select(`
+                    *,
+                    sale_items (*)
+                `)
+                .eq('user_id', userId)
+                .order('sale_date', { ascending: false });
+            
+            // Aplicar filtro de data
+            if (filter !== 'all') {
+                const now = new Date();
+                let startDate = new Date();
+                
+                if (filter === 'today') {
+                    startDate.setHours(0, 0, 0, 0);
+                } else if (filter === 'week') {
+                    startDate.setDate(now.getDate() - 7);
+                } else if (filter === 'month') {
+                    startDate.setMonth(now.getMonth() - 1);
+                }
+                
+                query = query.gte('sale_date', startDate.toISOString());
+            }
+            
+            const { data, error } = await query;
+            
+            if (error) {
+                console.error('Erro ao carregar histórico:', error);
+                return [];
+            }
+            
+            // Formatar os dados para compatibilidade
+            return data.map(sale => ({
+                id: sale.id,
+                date: new Date(sale.sale_date).toLocaleString('pt-BR'),
+                timestamp: new Date(sale.sale_date).getTime(),
+                subtotal: parseFloat(sale.subtotal),
+                discount: parseFloat(sale.discount),
+                total: parseFloat(sale.total),
+                itemsCount: sale.items_count,
+                method: sale.payment_method,
+                processingTime: parseFloat(sale.processing_time) || 0,
+                items: sale.sale_items ? sale.sale_items.map(item => ({
+                    id: item.product_id,
+                    name: item.product_name,
+                    qty: item.quantity,
+                    price: parseFloat(item.unit_price)
+                })) : []
+            }));
+        } catch (error) {
+            console.error('Erro ao carregar histórico:', error);
+            return [];
+        }
+    }
+
+    async function deleteProductFromSupabase(productId, userId) {
+        try {
+            if (!supabase || !userId) return false;
+
+            const { error } = await supabase
+                .from('products')
+                .delete()
+                .eq('id', productId)
+                .eq('user_id', userId);
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('Erro ao excluir produto:', error);
+            throw error;
+        }
+    }
+
+    // --- FUNÇÕES DE AUTENTICAÇÃO (MODIFICADAS) ---
     function showLogin() {
         document.getElementById('loginCard').style.display = 'block';
         document.getElementById('registerCard').style.display = 'none';
@@ -1868,15 +2292,12 @@
     }
 
     function validateCPFCNPJ(document) {
-        // Remover caracteres não numéricos
         const cleanDoc = document.replace(/\D/g, '');
         
-        // Validar CPF (11 dígitos)
         if (cleanDoc.length === 11) {
             return validateCPF(cleanDoc);
         }
         
-        // Validar CNPJ (14 dígitos)
         if (cleanDoc.length === 14) {
             return validateCNPJ(cleanDoc);
         }
@@ -1885,206 +2306,83 @@
     }
 
     function validateCPF(cpf) {
-        // Validação simples de CPF
         if (cpf.length !== 11) return false;
-        
-        // Verificar se todos os dígitos são iguais
         if (/^(\d)\1+$/.test(cpf)) return false;
-        
         return true;
     }
 
     function validateCNPJ(cnpj) {
-        // Validação simples de CNPJ
         if (cnpj.length !== 14) return false;
-        
-        // Verificar se todos os dígitos são iguais
         if (/^(\d)\1+$/.test(cnpj)) return false;
-        
         return true;
     }
 
     function validatePhone(phone) {
-        // Remover caracteres não numéricos
         const cleanPhone = phone.replace(/\D/g, '');
         return cleanPhone.length >= 10 && cleanPhone.length <= 11;
     }
 
-    function loginUser(email, password) {
+    async function loginUser(email, password) {
         showLoader();
         
-        setTimeout(() => {
-            // Buscar usuário no localStorage
-            const users = JSON.parse(localStorage.getItem('pdv_users')) || [];
-            const user = users.find(u => u.email === email && u.password === password);
+        const user = await supabaseLogin(email, password);
+        if (user) {
+            currentUser = user;
+            isAuthenticated = true;
             
-            if (user) {
-                // Verificar se a assinatura está ativa
-                const now = new Date();
-                const validUntil = new Date(user.validUntil);
-                
-                if (now > validUntil) {
-                    hideLoader();
-                    showToast('Sua assinatura expirou. Renove para continuar usando.', 'error');
-                    return;
-                }
-                
-                // Login bem-sucedido
-                currentUser = user;
-                isAuthenticated = true;
-                
-                // Carregar dados do usuário
-                loadUserData(user.id);
-                
-                // Esconder tela de login e mostrar aplicativo
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'grid';
-                
-                // Atualizar status da assinatura
-                updateSubscriptionStatus();
-                
-                // Inicializar aplicação
-                initApp();
-                
-                showToast(`Bem-vindo de volta, ${user.companyName}! 👋`, 'success');
-            } else {
-                hideLoader();
-                showToast('Email ou senha incorretos', 'error');
-            }
-        }, 800);
-    }
-
-    function registerUser(userData) {
-        showLoader();
-        
-        setTimeout(() => {
-            // Validar dados
-            if (!validateEmail(userData.email)) {
-                hideLoader();
-                showToast('Por favor, insira um email válido', 'error');
-                return;
-            }
+            // Carregar dados do usuário do Supabase
+            products = await loadUserProducts(user.id);
+            salesHistory = await loadSalesHistoryFromSupabase(user.id);
             
-            if (!validateCPFCNPJ(userData.document)) {
-                hideLoader();
-                showToast('Por favor, insira um CPF ou CNPJ válido', 'error');
-                return;
-            }
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'grid';
+            updateSubscriptionStatus();
+            initApp();
             
-            if (!validatePhone(userData.phone)) {
-                hideLoader();
-                showToast('Por favor, insira um telefone válido', 'error');
-                return;
-            }
-            
-            if (userData.password !== userData.confirmPassword) {
-                hideLoader();
-                showToast('As senhas não coincidem', 'error');
-                return;
-            }
-            
-            if (userData.password.length < 6) {
-                hideLoader();
-                showToast('A senha deve ter pelo menos 6 caracteres', 'error');
-                return;
-            }
-            
-            // Verificar se email já existe
-            const users = JSON.parse(localStorage.getItem('pdv_users')) || [];
-            const emailExists = users.some(u => u.email === userData.email);
-            
-            if (emailExists) {
-                hideLoader();
-                showToast('Este email já está cadastrado', 'error');
-                return;
-            }
-            
-            // Calcular datas de validade
-            const now = new Date();
-            const trialEnd = new Date(now);
-            trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-            
-            const nextBilling = new Date(trialEnd);
-            
-            // Criar novo usuário
-            const newUser = {
-                id: 'USER_' + Date.now().toString(),
-                email: userData.email,
-                password: userData.password,
-                companyName: userData.companyName,
-                document: userData.document,
-                phone: userData.phone,
-                createdAt: now.toISOString(),
-                plan: 'professional',
-                status: 'active',
-                validUntil: trialEnd.toISOString(),
-                nextBilling: nextBilling.toISOString(),
-                isTrial: true,
-                paymentMethod: 'pending'
-            };
-            
-            // Adicionar usuário
-            users.push(newUser);
-            localStorage.setItem('pdv_users', JSON.stringify(users));
-            
-            // Criar dados iniciais para o usuário
-            createUserInitialData(newUser.id);
-            
-            hideLoader();
-            showToast(`Conta criada com sucesso! Bem-vindo ao PDV Mágico Pro! 🎉`, 'success');
-            
-            // Fazer login automaticamente
-            setTimeout(() => {
-                loginUser(userData.email, userData.password);
-            }, 1500);
-        }, 1000);
-    }
-
-    function createUserInitialData(userId) {
-        // Criar estrutura de dados para o usuário
-        const userData = {
-            products: defaultProducts,
-            salesHistory: [],
-            settings: {
-                companyName: '',
-                address: '',
-                phone: '',
-                email: ''
-            }
-        };
-        
-        localStorage.setItem(`pdv_data_${userId}`, JSON.stringify(userData));
-    }
-
-    function loadUserData(userId) {
-        // Carregar dados do usuário
-        const userData = JSON.parse(localStorage.getItem(`pdv_data_${userId}`));
-        
-        if (userData) {
-            products = userData.products || defaultProducts;
-            salesHistory = userData.salesHistory || [];
-            
-            // Carregar configurações se existirem
-            if (userData.settings) {
-                // Aqui você pode carregar as configurações da empresa
-            }
-        } else {
-            // Dados iniciais
-            products = defaultProducts;
-            salesHistory = [];
+            showToast(`Bem-vindo de volta, ${user.companyName}! 👋`, 'success');
         }
     }
 
-    function saveUserData() {
-        if (!currentUser) return;
+    async function registerUser(userData) {
+        showLoader();
         
-        const userData = {
-            products: products,
-            salesHistory: salesHistory,
-            settings: {} // Adicione configurações aqui se necessário
-        };
+        // Validações
+        if (!validateEmail(userData.email)) {
+            hideLoader();
+            showToast('Por favor, insira um email válido', 'error');
+            return;
+        }
         
-        localStorage.setItem(`pdv_data_${currentUser.id}`, JSON.stringify(userData));
+        if (!validateCPFCNPJ(userData.document)) {
+            hideLoader();
+            showToast('Por favor, insira um CPF ou CNPJ válido', 'error');
+            return;
+        }
+        
+        if (!validatePhone(userData.phone)) {
+            hideLoader();
+            showToast('Por favor, insira um telefone válido', 'error');
+            return;
+        }
+        
+        if (userData.password !== userData.confirmPassword) {
+            hideLoader();
+            showToast('As senhas não coincidem', 'error');
+            return;
+        }
+        
+        if (userData.password.length < 6) {
+            hideLoader();
+            showToast('A senha deve ter pelo menos 6 caracteres', 'error');
+            return;
+        }
+        
+        const newUser = await supabaseRegister(userData);
+        if (newUser) {
+            setTimeout(() => {
+                loginUser(userData.email, userData.password);
+            }, 1500);
+        }
     }
 
     function updateSubscriptionStatus() {
@@ -2159,7 +2457,6 @@
 
     function upgradePlan() {
         showToast('Redirecionando para página de pagamento...', 'info');
-        // Em uma implementação real, aqui você redirecionaria para um gateway de pagamento
         setTimeout(() => {
             document.getElementById('accountModal').style.display = 'none';
             showToast('Página de pagamento em desenvolvimento. Em produção, isso redirecionaria para o gateway.', 'warning');
@@ -2168,9 +2465,6 @@
 
     function logout() {
         if (confirm('Tem certeza que deseja sair do sistema?')) {
-            // Salvar dados antes de sair
-            saveUserData();
-            
             // Resetar estado
             currentUser = null;
             isAuthenticated = false;
@@ -2192,7 +2486,7 @@
     function init() {
         console.log(`${APP_NAME} v${APP_VERSION} inicializando...`);
         
-        // Verificar se há usuário logado
+        // Verificar se há usuário logado no localStorage
         const lastUser = JSON.parse(localStorage.getItem('pdv_last_user'));
         if (lastUser && lastUser.remember) {
             // Tentar login automático
@@ -2403,21 +2697,18 @@
     }
 
     // --- SISTEMA DE PERSISTÊNCIA ---
-    function saveData() {
+    async function saveData() {
         try {
             if (!currentUser) return;
             
-            // Salvar dados do usuário
-            saveUserData();
-            
-            // Salvar usuário atual
+            // Salvar usuário atual para login automático
             localStorage.setItem('pdv_last_user', JSON.stringify({
                 email: currentUser.email,
                 remember: true
             }));
             
-            // Log silencioso (apenas no console)
-            console.log('Dados salvos automaticamente');
+            // Log silencioso
+            console.log('Dados locais salvos');
         } catch (e) {
             console.error('Erro ao salvar dados:', e);
         }
@@ -2981,16 +3272,17 @@
 
     function openSplitPaymentModal() {
         showToast('Funcionalidade de parcelamento em desenvolvimento', 'info');
-        // Em uma versão futura, implementar interface para dividir o pagamento
     }
 
-    function processPayment(method) {
+    async function processPayment(method) {
         // Calcular totais
         let subtotal = 0;
         cart.forEach(item => {
             const product = products.find(p => p.id === item.id);
-            product.stock -= item.qty;
-            subtotal += (item.price * item.qty);
+            if (product) {
+                product.stock -= item.qty;
+                subtotal += (item.price * item.qty);
+            }
         });
         
         const discountAmount = subtotal * (currentDiscount / 100);
@@ -3018,10 +3310,21 @@
             processingTime: stats.processingTime
         };
         
+        // Registrar venda no Supabase
+        try {
+            if (currentUser && supabase) {
+                await recordSaleToSupabase(saleRecord, currentUser.id);
+            }
+        } catch (error) {
+            console.error('Erro ao registrar venda no Supabase:', error);
+            showToast('Venda registrada localmente, mas houve erro no servidor', 'warning');
+        }
+        
+        // Adicionar ao histórico local
         salesHistory.unshift(saleRecord);
         currentSaleData = saleRecord;
         
-        // Resetar carrinho e salvar
+        // Resetar carrinho
         cart = [];
         currentDiscount = 0;
         updateCartUI();
@@ -3308,7 +3611,7 @@
         });
     }
 
-    function addProduct() {
+    async function addProduct() {
         const name = document.getElementById('newProdName').value.trim();
         const price = parseFloat(document.getElementById('newProdPrice').value);
         const stock = parseInt(document.getElementById('newProdStock').value);
@@ -3321,35 +3624,42 @@
             return;
         }
         
-        // Extrair emoji (pegar primeiro caractere se for emoji)
+        // Extrair emoji
         let emoji = '📦';
         if (emojiVal) {
-            // Se o valor começar com emoji, usar ele
             const emojiRegex = /[\p{Emoji_Presentation}\p{Emoji}\uFE0F]/u;
             if (emojiRegex.test(emojiVal.charAt(0))) {
                 emoji = emojiVal.charAt(0);
             } else {
-                // Tentar encontrar emoji pelo texto
                 const found = emojiDB.find(item => item.keys.includes(emojiVal.toLowerCase()));
                 emoji = found ? found.char : '📦';
             }
         }
         
-        // Criar novo ID
+        // Criar novo produto local
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        
-        // Adicionar produto
-        products.push({ 
+        const newProduct = { 
             id: newId, 
             name, 
             price, 
             stock, 
             emoji, 
-            category: category || 'outro',
-            createdAt: new Date().toISOString()
-        });
+            category: category || 'outro'
+        };
         
-        saveData();
+        // Salvar no Supabase se houver usuário logado
+        if (currentUser && supabase) {
+            try {
+                const supabaseId = await saveProductToSupabase(newProduct, currentUser.id);
+                newProduct._supabaseId = supabaseId;
+            } catch (error) {
+                console.error('Erro ao salvar produto no Supabase:', error);
+                showToast('Produto salvo localmente, mas erro no servidor', 'warning');
+            }
+        }
+        
+        // Adicionar localmente
+        products.push(newProduct);
         
         // Limpar formulário
         document.getElementById('newProdName').value = '';
@@ -3363,6 +3673,10 @@
         
         // Atualizar badge de estoque baixo
         checkLowStock();
+        
+        // Atualizar UI
+        renderStock();
+        renderPOS();
     }
 
     function editProduct(id) {
@@ -3404,11 +3718,11 @@
         showToast(`Editando: ${product.name}`, 'info');
     }
 
-    function saveProductEdit(id) {
+    async function saveProductEdit(id) {
         const product = products.find(p => p.id === id);
         if (!product) return;
         
-        // Atualizar dados
+        // Atualizar dados localmente
         product.name = document.getElementById('newProdName').value.trim();
         product.price = parseFloat(document.getElementById('newProdPrice').value);
         product.stock = parseInt(document.getElementById('newProdStock').value);
@@ -3420,9 +3734,22 @@
             product.emoji = emojiRegex.test(emojiVal.charAt(0)) ? emojiVal.charAt(0) : product.emoji;
         }
         
-        saveData();
+        // Salvar no Supabase se houver usuário logado
+        if (currentUser && supabase && product._supabaseId) {
+            try {
+                await saveProductToSupabase(product, currentUser.id);
+            } catch (error) {
+                console.error('Erro ao atualizar produto no Supabase:', error);
+                showToast('Produto atualizado localmente, mas erro no servidor', 'warning');
+            }
+        }
+        
         cancelEdit('<i class="fas fa-plus-circle"></i> Adicionar');
         showToast(`Produto "${product.name}" atualizado com sucesso!`, 'success');
+        
+        // Atualizar UI
+        renderStock();
+        renderPOS();
     }
 
     function cancelEdit(originalButtonText) {
@@ -3446,14 +3773,21 @@
         showToast('Edição cancelada', 'info');
     }
 
-    function updateStock(id, newQty) {
+    async function updateStock(id, newQty) {
         const p = products.find(p => p.id === id);
         if (!p) return;
         
         const oldQty = p.stock;
         p.stock = parseInt(newQty) || 0;
         
-        saveData();
+        // Atualizar no Supabase se houver usuário logado
+        if (currentUser && supabase && p._supabaseId) {
+            try {
+                await saveProductToSupabase(p, currentUser.id);
+            } catch (error) {
+                console.error('Erro ao atualizar estoque no Supabase:', error);
+            }
+        }
         
         // Notificar se estoque ficou baixo
         if (oldQty >= 5 && p.stock < 5) {
@@ -3462,9 +3796,13 @@
         
         // Atualizar badge de estoque baixo
         checkLowStock();
+        
+        // Atualizar UI
+        renderStock();
+        renderPOS();
     }
 
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
         const product = products.find(p => p.id === id);
         if (!product) return;
         
@@ -3480,12 +3818,26 @@
                 updateCartUI();
             }
             
+            // Excluir do Supabase se houver usuário logado
+            if (currentUser && supabase && product._supabaseId) {
+                try {
+                    await deleteProductFromSupabase(product._supabaseId, currentUser.id);
+                } catch (error) {
+                    console.error('Erro ao excluir produto do Supabase:', error);
+                    showToast('Produto excluído localmente, mas erro no servidor', 'warning');
+                }
+            }
+            
+            // Excluir localmente
             products = products.filter(p => p.id !== id);
-            saveData();
             showToast(`Produto "${product.name}" excluído com sucesso`, 'info');
             
             // Atualizar badge de estoque baixo
             checkLowStock();
+            
+            // Atualizar UI
+            renderStock();
+            renderPOS();
         }
     }
 
@@ -3566,6 +3918,18 @@
 
     // --- DASHBOARD ANALÍTICO ---
     function updateDashboard() {
+        // Carregar histórico atualizado do Supabase
+        if (currentUser) {
+            loadSalesHistoryFromSupabase(currentUser.id, 'all').then(data => {
+                salesHistory = data;
+                renderDashboardData();
+            });
+        } else {
+            renderDashboardData();
+        }
+    }
+
+    function renderDashboardData() {
         // Calcular vendas de hoje
         const today = new Date().toDateString();
         const todaySales = salesHistory.filter(s => 
@@ -3611,14 +3975,16 @@
         // Produto mais vendido
         const allItems = [];
         salesHistory.forEach(sale => {
-            sale.items.forEach(item => {
-                const existing = allItems.find(i => i.id === item.id);
-                if (existing) {
-                    existing.qty += item.qty;
-                } else {
-                    allItems.push({...item});
-                }
-            });
+            if (sale.items) {
+                sale.items.forEach(item => {
+                    const existing = allItems.find(i => i.id === item.id);
+                    if (existing) {
+                        existing.qty += item.qty;
+                    } else {
+                        allItems.push({...item});
+                    }
+                });
+            }
         });
         
         if (allItems.length > 0) {
@@ -3627,6 +3993,9 @@
             );
             document.getElementById('dashTopProduct').textContent = topProduct.name.substring(0, 15) + (topProduct.name.length > 15 ? '...' : '');
             document.getElementById('dashTopProductQty').textContent = `${topProduct.qty} unidades`;
+        } else {
+            document.getElementById('dashTopProduct').textContent = '-';
+            document.getElementById('dashTopProductQty').textContent = '0 unidades';
         }
         
         // Estoque baixo
@@ -3712,9 +4081,13 @@
         details += `Total: R$ ${sale.total.toFixed(2)}\n\n`;
         details += `ITENS:\n`;
         
-        sale.items.forEach(item => {
-            details += `${item.qty}x ${item.name} - R$ ${(item.price * item.qty).toFixed(2)}\n`;
-        });
+        if (sale.items) {
+            sale.items.forEach(item => {
+                details += `${item.qty}x ${item.name} - R$ ${(item.price * item.qty).toFixed(2)}\n`;
+            });
+        } else {
+            details += `Nenhum item disponível\n`;
+        }
         
         alert(details);
     }
@@ -3726,7 +4099,7 @@
         const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         const salesData = [120, 190, 300, 500, 200, 350, 400];
         
-        // Criar gráfico simples com divs (em uma versão real, usaríamos uma biblioteca como Chart.js)
+        // Criar gráfico simples com divs
         chartEl.innerHTML = `
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
                 <div style="display: flex; justify-content: space-around; align-items: flex-end; height: 80%; padding: 0 20px;">
@@ -3954,7 +4327,7 @@
 2. Assinatura: R$ 29,90/mês após o período de teste
 3. Pagamento: Cobrança automática mensal
 4. Cancelamento: A qualquer momento
-5. Dados: Seus dados são armazenados localmente
+5. Dados: Seus dados são armazenados localmente e no Supabase
 
 Para cancelar, entre em contato com nosso suporte.`);
     };
