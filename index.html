@@ -1753,7 +1753,7 @@
 
 <script>
     // ============================================
-    // SISTEMA PDV MÁGICO PRO - COM SUPABASE
+    // SISTEMA PDV MÁGICO PRO - COM SUPABASE (VERSÃO CORRIGIDA)
     // ============================================
 
     // --- CONFIGURAÇÃO DO SUPABASE ---
@@ -1771,7 +1771,7 @@
 
     // --- CONFIGURAÇÃO INICIAL ---
     const APP_NAME = "PDV Mágico Pro";
-    const APP_VERSION = "2.2.0"; // Versão atualizada para Supabase
+    const APP_VERSION = "2.3.0"; // Versão com correções Supabase
     const APP_AUTHOR = "Sistema Inteligente";
     const MONTHLY_PRICE = 29.90;
     const TRIAL_DAYS = 7;
@@ -1867,12 +1867,12 @@
         processingTime: 0
     };
 
-    // --- FUNÇÕES SUPABASE ---
+    // --- FUNÇÕES SUPABASE (VERSÃO CORRIGIDA) ---
 
-    // Função para hash de senha simples (em produção use bcrypt)
+    // Função para hash de senha simples
     function hashPassword(password) {
-        // Usando btoa para demonstração - em produção use algo mais seguro
-        return btoa(unescape(encodeURIComponent(password)));
+        // Método simples para demonstração - em produção use bcrypt
+        return btoa(unescape(encodeURIComponent(password + 'pdv_salt')));
     }
 
     async function supabaseLogin(email, password) {
@@ -1883,7 +1883,9 @@
                 throw new Error('Supabase não inicializado');
             }
 
-            // Buscar usuário
+            console.log('Tentando login para:', email);
+            
+            // BUSCAR USUÁRIO DIRETAMENTE DA TABELA (sem auth do Supabase)
             const { data: users, error } = await supabase
                 .from('users')
                 .select('*')
@@ -1893,8 +1895,17 @@
             
             if (error) {
                 console.error('Erro no login Supabase:', error);
+                
+                // Se não encontrou, verificar se é erro de "não encontrado"
+                if (error.code === 'PGRST116') {
+                    hideLoader();
+                    showToast('Email ou senha incorretos', 'error');
+                    return null;
+                }
+                
+                // Outro erro
                 hideLoader();
-                showToast('Email ou senha incorretos', 'error');
+                showToast('Erro ao conectar ao servidor', 'error');
                 return null;
             }
             
@@ -1904,7 +1915,10 @@
                 return null;
             }
             
-            return {
+            console.log('Usuário encontrado:', users.id);
+            
+            // Converter para formato interno
+            const userData = {
                 id: users.id,
                 email: users.email,
                 companyName: users.company_name,
@@ -1919,10 +1933,14 @@
                 paymentMethod: users.payment_method,
                 settings: users.settings
             };
+            
+            hideLoader();
+            return userData;
+            
         } catch (error) {
             console.error('Erro no login:', error);
             hideLoader();
-            showToast('Erro ao conectar ao servidor', 'error');
+            showToast('Erro ao conectar ao servidor: ' + error.message, 'error');
             return null;
         }
     }
@@ -1940,9 +1958,9 @@
                 .from('users')
                 .select('id')
                 .eq('email', userData.email)
-                .single();
+                .maybeSingle(); // Usar maybeSingle para evitar erro quando não encontrado
             
-            if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = não encontrado
+            if (checkError && checkError.code !== 'PGRST116') {
                 console.error('Erro ao verificar email:', checkError);
             }
             
@@ -1989,6 +2007,7 @@
             hideLoader();
             showToast('Conta criada com sucesso! 🎉', 'success');
             
+            // Retornar dados do usuário
             return {
                 id: newUser.id,
                 email: newUser.email,
@@ -2015,7 +2034,7 @@
 
     async function createDefaultProducts(userId) {
         try {
-            if (!supabase) return;
+            if (!supabase || !userId) return;
             
             const defaultProducts = [
                 { name: 'Hambúrguer Mágico', price: 25.00, stock: 20, emoji: '🍔', category: 'alimento' },
@@ -2047,6 +2066,8 @@
             
             if (error) {
                 console.error('Erro ao criar produtos padrão:', error);
+            } else {
+                console.log('Produtos padrão criados para usuário:', userId);
             }
         } catch (error) {
             console.error('Erro em createDefaultProducts:', error);
@@ -2060,6 +2081,8 @@
                 return defaultProducts;
             }
 
+            console.log('Carregando produtos para usuário:', userId);
+            
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
@@ -2071,6 +2094,35 @@
                 return defaultProducts;
             }
             
+            console.log('Produtos carregados:', data?.length || 0);
+            
+            // Se não houver produtos, criar os padrão
+            if (!data || data.length === 0) {
+                await createDefaultProducts(userId);
+                // Tentar carregar novamente
+                const { data: retryData, error: retryError } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('id', { ascending: true });
+                
+                if (retryError) {
+                    console.error('Erro ao carregar produtos após criação:', retryError);
+                    return defaultProducts;
+                }
+                
+                return (retryData || []).map((p, index) => ({
+                    id: p.id,
+                    name: p.name,
+                    price: parseFloat(p.price),
+                    stock: p.stock,
+                    emoji: p.emoji || '📦',
+                    category: p.category,
+                    barcode: p.barcode,
+                    _supabaseId: p.id
+                }));
+            }
+            
             // Transformar dados do Supabase para formato local
             return data.map((p, index) => ({
                 id: p.id,
@@ -2080,7 +2132,7 @@
                 emoji: p.emoji || '📦',
                 category: p.category,
                 barcode: p.barcode,
-                _supabaseId: p.id // Para referência
+                _supabaseId: p.id
             }));
         } catch (error) {
             console.error('Erro ao carregar produtos:', error);
@@ -2110,6 +2162,7 @@
                     .single();
                 
                 if (error) throw error;
+                console.log('Produto atualizado no Supabase:', data.id);
                 return data.id;
             } else {
                 // Inserir novo produto
@@ -2127,6 +2180,7 @@
                     .single();
                 
                 if (error) throw error;
+                console.log('Produto inserido no Supabase:', data.id);
                 return data.id;
             }
         } catch (error) {
@@ -2138,9 +2192,12 @@
     async function recordSaleToSupabase(saleData, userId) {
         try {
             if (!supabase || !userId) {
-                throw new Error('Supabase não disponível');
+                console.log('Supabase não disponível, venda registrada apenas localmente');
+                return false;
             }
 
+            console.log('Registrando venda no Supabase:', saleData.id);
+            
             // 1. Registrar a venda
             const { data: sale, error: saleError } = await supabase
                 .from('sales')
@@ -2158,7 +2215,12 @@
                 .select()
                 .single();
             
-            if (saleError) throw saleError;
+            if (saleError) {
+                console.error('Erro ao registrar venda:', saleError);
+                throw saleError;
+            }
+            
+            console.log('Venda registrada:', sale.id);
             
             // 2. Registrar os itens da venda
             const saleItems = saleData.items.map(item => ({
@@ -2170,26 +2232,40 @@
                 total_price: item.price * item.qty
             }));
             
-            const { error: itemsError } = await supabase
-                .from('sale_items')
-                .insert(saleItems);
-            
-            if (itemsError) throw itemsError;
+            if (saleItems.length > 0) {
+                const { error: itemsError } = await supabase
+                    .from('sale_items')
+                    .insert(saleItems);
+                
+                if (itemsError) {
+                    console.error('Erro ao registrar itens da venda:', itemsError);
+                    throw itemsError;
+                }
+                console.log('Itens da venda registrados:', saleItems.length);
+            }
             
             // 3. Atualizar estoque dos produtos
             for (const item of saleData.items) {
                 if (item._supabaseId) {
-                    await supabase
+                    const { error: stockError } = await supabase
                         .from('products')
-                        .update({ stock: supabase.sql`stock - ${item.qty}` })
+                        .update({ 
+                            stock: item.stock - item.qty, // Subtrair quantidade vendida
+                            updated_at: new Date().toISOString()
+                        })
                         .eq('id', item._supabaseId)
                         .eq('user_id', userId);
+                    
+                    if (stockError) {
+                        console.error('Erro ao atualizar estoque do produto:', item._supabaseId, stockError);
+                    }
                 }
             }
             
+            console.log('Venda registrada com sucesso no Supabase');
             return true;
         } catch (error) {
-            console.error('Erro ao registrar venda:', error);
+            console.error('Erro ao registrar venda no Supabase:', error);
             throw error;
         }
     }
@@ -2201,6 +2277,8 @@
                 return salesHistory;
             }
 
+            console.log('Carregando histórico para usuário:', userId, 'filtro:', filter);
+            
             let query = supabase
                 .from('sales')
                 .select(`
@@ -2233,8 +2311,10 @@
                 return [];
             }
             
+            console.log('Histórico carregado:', data?.length || 0, 'vendas');
+            
             // Formatar os dados para compatibilidade
-            return data.map(sale => ({
+            return (data || []).map(sale => ({
                 id: sale.id,
                 date: new Date(sale.sale_date).toLocaleString('pt-BR'),
                 timestamp: new Date(sale.sale_date).getTime(),
@@ -2261,6 +2341,8 @@
         try {
             if (!supabase || !userId) return false;
 
+            console.log('Excluindo produto do Supabase:', productId);
+            
             const { error } = await supabase
                 .from('products')
                 .delete()
@@ -2268,6 +2350,8 @@
                 .eq('user_id', userId);
             
             if (error) throw error;
+            
+            console.log('Produto excluído do Supabase:', productId);
             return true;
         } catch (error) {
             console.error('Erro ao excluir produto:', error);
@@ -2329,6 +2413,8 @@
         if (user) {
             currentUser = user;
             isAuthenticated = true;
+            
+            console.log('Usuário autenticado, carregando dados...');
             
             // Carregar dados do usuário do Supabase
             products = await loadUserProducts(user.id);
@@ -3314,6 +3400,7 @@
         try {
             if (currentUser && supabase) {
                 await recordSaleToSupabase(saleRecord, currentUser.id);
+                showToast(`Venda registrada no servidor! ✅`, 'success');
             }
         } catch (error) {
             console.error('Erro ao registrar venda no Supabase:', error);
@@ -3652,6 +3739,7 @@
             try {
                 const supabaseId = await saveProductToSupabase(newProduct, currentUser.id);
                 newProduct._supabaseId = supabaseId;
+                console.log('Produto salvo no Supabase com ID:', supabaseId);
             } catch (error) {
                 console.error('Erro ao salvar produto no Supabase:', error);
                 showToast('Produto salvo localmente, mas erro no servidor', 'warning');
@@ -3738,6 +3826,7 @@
         if (currentUser && supabase && product._supabaseId) {
             try {
                 await saveProductToSupabase(product, currentUser.id);
+                console.log('Produto atualizado no Supabase:', product._supabaseId);
             } catch (error) {
                 console.error('Erro ao atualizar produto no Supabase:', error);
                 showToast('Produto atualizado localmente, mas erro no servidor', 'warning');
@@ -3784,6 +3873,7 @@
         if (currentUser && supabase && p._supabaseId) {
             try {
                 await saveProductToSupabase(p, currentUser.id);
+                console.log('Estoque atualizado no Supabase:', p._supabaseId, 'novo estoque:', p.stock);
             } catch (error) {
                 console.error('Erro ao atualizar estoque no Supabase:', error);
             }
@@ -3822,6 +3912,7 @@
             if (currentUser && supabase && product._supabaseId) {
                 try {
                     await deleteProductFromSupabase(product._supabaseId, currentUser.id);
+                    console.log('Produto excluído do Supabase:', product._supabaseId);
                 } catch (error) {
                     console.error('Erro ao excluir produto do Supabase:', error);
                     showToast('Produto excluído localmente, mas erro no servidor', 'warning');
