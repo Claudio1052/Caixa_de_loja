@@ -1753,7 +1753,7 @@
 
 <script>
     // ============================================
-    // SISTEMA PDV MÁGICO PRO - COM SUPABASE (VERSÃO CORRIGIDA)
+    // SISTEMA PDV MÁGICO PRO - COM SUPABASE (VERSÃO CORRIGIDA E COMPLETA)
     // ============================================
 
     // --- CONFIGURAÇÃO DO SUPABASE ---
@@ -1771,7 +1771,7 @@
 
     // --- CONFIGURAÇÃO INICIAL ---
     const APP_NAME = "PDV Mágico Pro";
-    const APP_VERSION = "2.3.0"; // Versão com correções Supabase
+    const APP_VERSION = "2.3.1"; // Versão com correções de login
     const APP_AUTHOR = "Sistema Inteligente";
     const MONTHLY_PRICE = 29.90;
     const TRIAL_DAYS = 7;
@@ -1850,7 +1850,7 @@
     ];
 
     // Estado da aplicação
-    let products = [];
+    let products = [...defaultProducts];
     let salesHistory = [];
     let cart = [];
     let currentSaleData = null;
@@ -1867,12 +1867,17 @@
         processingTime: 0
     };
 
-    // --- FUNÇÕES SUPABASE (VERSÃO CORRIGIDA) ---
+    // --- FUNÇÕES SUPABASE CORRIGIDAS ---
 
-    // Função para hash de senha simples
-    function hashPassword(password) {
-        // Método simples para demonstração - em produção use bcrypt
-        return btoa(unescape(encodeURIComponent(password + 'pdv_salt')));
+    // Função de hash simples para demonstração
+    function simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
     }
 
     async function supabaseLogin(email, password) {
@@ -1885,53 +1890,44 @@
 
             console.log('Tentando login para:', email);
             
-            // BUSCAR USUÁRIO DIRETAMENTE DA TABELA (sem auth do Supabase)
-            const { data: users, error } = await supabase
+            // Calcular hash da senha
+            const passwordHash = simpleHash(password);
+            
+            // Buscar usuário
+            const { data, error } = await supabase
                 .from('users')
                 .select('*')
                 .eq('email', email)
-                .eq('password_hash', hashPassword(password))
-                .single();
+                .eq('password_hash', passwordHash);
             
             if (error) {
                 console.error('Erro no login Supabase:', error);
-                
-                // Se não encontrou, verificar se é erro de "não encontrado"
-                if (error.code === 'PGRST116') {
-                    hideLoader();
-                    showToast('Email ou senha incorretos', 'error');
-                    return null;
-                }
-                
-                // Outro erro
                 hideLoader();
                 showToast('Erro ao conectar ao servidor', 'error');
                 return null;
             }
             
-            if (!users) {
+            if (!data || data.length === 0) {
                 hideLoader();
                 showToast('Email ou senha incorretos', 'error');
                 return null;
             }
             
-            console.log('Usuário encontrado:', users.id);
+            const user = data[0];
+            console.log('Usuário encontrado:', user.id);
             
             // Converter para formato interno
             const userData = {
-                id: users.id,
-                email: users.email,
-                companyName: users.company_name,
-                document: users.document,
-                phone: users.phone,
-                createdAt: users.created_at,
-                plan: users.plan,
-                status: users.status,
-                validUntil: users.valid_until,
-                nextBilling: users.next_billing,
-                isTrial: users.is_trial,
-                paymentMethod: users.payment_method,
-                settings: users.settings
+                id: user.id,
+                email: user.email,
+                companyName: user.company_name || 'Minha Empresa',
+                document: user.document || '',
+                phone: user.phone || '',
+                createdAt: user.created_at || new Date().toISOString(),
+                plan: user.plan || 'professional',
+                status: user.status || 'active',
+                validUntil: user.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                isTrial: user.is_trial !== false
             };
             
             hideLoader();
@@ -1940,7 +1936,7 @@
         } catch (error) {
             console.error('Erro no login:', error);
             hideLoader();
-            showToast('Erro ao conectar ao servidor: ' + error.message, 'error');
+            showToast('Erro ao fazer login: ' + error.message, 'error');
             return null;
         }
     }
@@ -1954,81 +1950,79 @@
             }
 
             // Verificar se email já existe
-            const { data: existingUser, error: checkError } = await supabase
+            const { data: existingUsers, error: checkError } = await supabase
                 .from('users')
                 .select('id')
-                .eq('email', userData.email)
-                .maybeSingle(); // Usar maybeSingle para evitar erro quando não encontrado
+                .eq('email', userData.email);
             
-            if (checkError && checkError.code !== 'PGRST116') {
+            if (checkError) {
                 console.error('Erro ao verificar email:', checkError);
             }
             
-            if (existingUser) {
+            if (existingUsers && existingUsers.length > 0) {
                 hideLoader();
                 showToast('Este email já está cadastrado', 'error');
-                return false;
+                return null;
             }
             
             // Calcular datas
             const now = new Date();
             const trialEnd = new Date(now);
             trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-            const nextBilling = new Date(trialEnd);
+            
+            // Calcular hash da senha
+            const passwordHash = simpleHash(userData.password);
             
             // Inserir usuário
             const { data: newUser, error: insertError } = await supabase
                 .from('users')
                 .insert([{
                     email: userData.email,
-                    password_hash: hashPassword(userData.password),
-                    company_name: userData.companyName,
-                    document: userData.document,
-                    phone: userData.phone,
+                    password_hash: passwordHash,
+                    company_name: userData.companyName || 'Minha Empresa',
+                    document: userData.document || '',
+                    phone: userData.phone || '',
                     plan: 'professional',
                     status: 'active',
                     valid_until: trialEnd.toISOString(),
-                    next_billing: nextBilling.toISOString(),
                     is_trial: true,
-                    payment_method: 'pending',
-                    settings: {}
+                    created_at: now.toISOString()
                 }])
-                .select()
-                .single();
+                .select();
             
             if (insertError) {
                 console.error('Erro ao inserir usuário:', insertError);
                 throw insertError;
             }
             
+            if (!newUser || newUser.length === 0) {
+                throw new Error('Usuário não foi criado');
+            }
+            
             // Criar produtos padrão para este usuário
-            await createDefaultProducts(newUser.id);
+            await createDefaultProducts(newUser[0].id);
             
             hideLoader();
-            showToast('Conta criada com sucesso! 🎉', 'success');
             
             // Retornar dados do usuário
             return {
-                id: newUser.id,
-                email: newUser.email,
-                companyName: newUser.company_name,
-                document: newUser.document,
-                phone: newUser.phone,
-                createdAt: newUser.created_at,
-                plan: newUser.plan,
-                status: newUser.status,
-                validUntil: newUser.valid_until,
-                nextBilling: newUser.next_billing,
-                isTrial: newUser.is_trial,
-                paymentMethod: newUser.payment_method,
-                settings: newUser.settings
+                id: newUser[0].id,
+                email: newUser[0].email,
+                companyName: newUser[0].company_name,
+                document: newUser[0].document,
+                phone: newUser[0].phone,
+                createdAt: newUser[0].created_at,
+                plan: newUser[0].plan,
+                status: newUser[0].status,
+                validUntil: newUser[0].valid_until,
+                isTrial: newUser[0].is_trial !== false
             };
             
         } catch (error) {
             console.error('Erro no registro:', error);
             hideLoader();
             showToast('Erro ao criar conta: ' + error.message, 'error');
-            return false;
+            return null;
         }
     }
 
@@ -2036,28 +2030,13 @@
         try {
             if (!supabase || !userId) return;
             
-            const defaultProducts = [
-                { name: 'Hambúrguer Mágico', price: 25.00, stock: 20, emoji: '🍔', category: 'alimento' },
-                { name: 'Poção de Cafeína', price: 8.50, stock: 50, emoji: '☕', category: 'bebida' },
-                { name: 'Donut Estelar', price: 12.00, stock: 15, emoji: '🍩', category: 'alimento' },
-                { name: 'Pizza Infinita', price: 45.00, stock: 8, emoji: '🍕', category: 'alimento' },
-                { name: 'Sushi Zen', price: 60.00, stock: 10, emoji: '🍣', category: 'alimento' },
-                { name: 'Sorvete Nuvem', price: 15.00, stock: 25, emoji: '🍦', category: 'alimento' },
-                { name: 'Pipoca Dourada', price: 10.00, stock: 30, emoji: '🍿', category: 'alimento' },
-                { name: 'Suco Vitamina', price: 12.00, stock: 40, emoji: '🥤', category: 'bebida' },
-                { name: 'Camisa Mágica', price: 89.90, stock: 12, emoji: '👕', category: 'vestuario' },
-                { name: 'Fones Celestial', price: 120.00, stock: 5, emoji: '🎧', category: 'eletronico' },
-            ];
-            
             const productsWithUserId = defaultProducts.map(product => ({
                 user_id: userId,
                 name: product.name,
                 price: product.price,
                 stock: product.stock,
                 emoji: product.emoji,
-                category: product.category,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                category: product.category
             }));
             
             const { error } = await supabase
@@ -2077,53 +2056,26 @@
     async function loadUserProducts(userId) {
         try {
             if (!supabase || !userId) {
-                console.log('Supabase não disponível ou userId inválido, usando produtos locais');
+                console.log('Usando produtos locais');
                 return defaultProducts;
             }
 
-            console.log('Carregando produtos para usuário:', userId);
-            
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
-                .eq('user_id', userId)
-                .order('id', { ascending: true });
+                .eq('user_id', userId);
             
             if (error) {
                 console.error('Erro ao carregar produtos:', error);
                 return defaultProducts;
             }
             
-            console.log('Produtos carregados:', data?.length || 0);
-            
-            // Se não houver produtos, criar os padrão
             if (!data || data.length === 0) {
                 await createDefaultProducts(userId);
-                // Tentar carregar novamente
-                const { data: retryData, error: retryError } = await supabase
-                    .from('products')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('id', { ascending: true });
-                
-                if (retryError) {
-                    console.error('Erro ao carregar produtos após criação:', retryError);
-                    return defaultProducts;
-                }
-                
-                return (retryData || []).map((p, index) => ({
-                    id: p.id,
-                    name: p.name,
-                    price: parseFloat(p.price),
-                    stock: p.stock,
-                    emoji: p.emoji || '📦',
-                    category: p.category,
-                    barcode: p.barcode,
-                    _supabaseId: p.id
-                }));
+                return defaultProducts;
             }
             
-            // Transformar dados do Supabase para formato local
+            // Transformar dados
             return data.map((p, index) => ({
                 id: p.id,
                 name: p.name,
@@ -2131,7 +2083,6 @@
                 stock: p.stock,
                 emoji: p.emoji || '📦',
                 category: p.category,
-                barcode: p.barcode,
                 _supabaseId: p.id
             }));
         } catch (error) {
@@ -2153,8 +2104,7 @@
                         price: product.price,
                         stock: product.stock,
                         emoji: product.emoji,
-                        category: product.category,
-                        updated_at: new Date().toISOString()
+                        category: product.category
                     })
                     .eq('id', product._supabaseId)
                     .eq('user_id', userId)
@@ -2162,7 +2112,6 @@
                     .single();
                 
                 if (error) throw error;
-                console.log('Produto atualizado no Supabase:', data.id);
                 return data.id;
             } else {
                 // Inserir novo produto
@@ -2180,7 +2129,6 @@
                     .single();
                 
                 if (error) throw error;
-                console.log('Produto inserido no Supabase:', data.id);
                 return data.id;
             }
         } catch (error) {
@@ -2221,48 +2169,6 @@
             }
             
             console.log('Venda registrada:', sale.id);
-            
-            // 2. Registrar os itens da venda
-            const saleItems = saleData.items.map(item => ({
-                sale_id: saleData.id,
-                product_id: item._supabaseId || item.id,
-                product_name: item.name,
-                quantity: item.qty,
-                unit_price: item.price,
-                total_price: item.price * item.qty
-            }));
-            
-            if (saleItems.length > 0) {
-                const { error: itemsError } = await supabase
-                    .from('sale_items')
-                    .insert(saleItems);
-                
-                if (itemsError) {
-                    console.error('Erro ao registrar itens da venda:', itemsError);
-                    throw itemsError;
-                }
-                console.log('Itens da venda registrados:', saleItems.length);
-            }
-            
-            // 3. Atualizar estoque dos produtos
-            for (const item of saleData.items) {
-                if (item._supabaseId) {
-                    const { error: stockError } = await supabase
-                        .from('products')
-                        .update({ 
-                            stock: item.stock - item.qty, // Subtrair quantidade vendida
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', item._supabaseId)
-                        .eq('user_id', userId);
-                    
-                    if (stockError) {
-                        console.error('Erro ao atualizar estoque do produto:', item._supabaseId, stockError);
-                    }
-                }
-            }
-            
-            console.log('Venda registrada com sucesso no Supabase');
             return true;
         } catch (error) {
             console.error('Erro ao registrar venda no Supabase:', error);
@@ -2274,17 +2180,14 @@
         try {
             if (!supabase || !userId) {
                 console.log('Supabase não disponível, usando histórico local');
-                return salesHistory;
+                return [];
             }
 
             console.log('Carregando histórico para usuário:', userId, 'filtro:', filter);
             
             let query = supabase
                 .from('sales')
-                .select(`
-                    *,
-                    sale_items (*)
-                `)
+                .select('*')
                 .eq('user_id', userId)
                 .order('sale_date', { ascending: false });
             
@@ -2323,13 +2226,7 @@
                 total: parseFloat(sale.total),
                 itemsCount: sale.items_count,
                 method: sale.payment_method,
-                processingTime: parseFloat(sale.processing_time) || 0,
-                items: sale.sale_items ? sale.sale_items.map(item => ({
-                    id: item.product_id,
-                    name: item.product_name,
-                    qty: item.quantity,
-                    price: parseFloat(item.unit_price)
-                })) : []
+                processingTime: parseFloat(sale.processing_time) || 0
             }));
         } catch (error) {
             console.error('Erro ao carregar histórico:', error);
@@ -2359,7 +2256,8 @@
         }
     }
 
-    // --- FUNÇÕES DE AUTENTICAÇÃO (MODIFICADAS) ---
+    // --- FUNÇÕES DE AUTENTICAÇÃO CORRIGIDAS ---
+
     function showLogin() {
         document.getElementById('loginCard').style.display = 'block';
         document.getElementById('registerCard').style.display = 'none';
@@ -2370,101 +2268,76 @@
         document.getElementById('registerCard').style.display = 'block';
     }
 
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-
-    // Função simplificada de validação de CPF/CNPJ
-    function validateCPFCNPJ(document) {
-        // Remove caracteres não numéricos
-        const cleanDoc = document.replace(/\D/g, '');
-        
-        // Para testes, aceitar qualquer documento com pelo menos 11 dígitos (CPF)
-        // Na produção, implemente validação real de CPF/CNPJ
-        if (cleanDoc.length >= 11) {
-            return true;
-        }
-        
-        return false;
-    }
-
-    function validatePhone(phone) {
-        const cleanPhone = phone.replace(/\D/g, '');
-        return cleanPhone.length >= 10 && cleanPhone.length <= 11;
-    }
-
     async function loginUser(email, password) {
-        showLoader();
-        
+        if (!email || !password) {
+            showToast('Preencha email e senha', 'error');
+            return;
+        }
+
         const user = await supabaseLogin(email, password);
+        
         if (user) {
             currentUser = user;
             isAuthenticated = true;
             
-            console.log('Usuário autenticado, carregando dados...');
+            console.log('Usuário autenticado:', user.companyName);
             
-            // Carregar dados do usuário do Supabase
+            // Carregar dados do usuário
             products = await loadUserProducts(user.id);
             salesHistory = await loadSalesHistoryFromSupabase(user.id);
             
+            // Mostrar aplicação
             document.getElementById('authContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'grid';
-            updateSubscriptionStatus();
+            
+            // Salvar sessão
+            localStorage.setItem('pdv_current_user', JSON.stringify(user));
+            
+            // Inicializar app
             initApp();
             
-            showToast(`Bem-vindo de volta, ${user.companyName}! 👋`, 'success');
+            showToast(`Bem-vindo, ${user.companyName}! 👋`, 'success');
         }
     }
 
     async function registerUser(userData) {
-        showLoader();
-        
-        // Validações simplificadas para teste
-        if (!validateEmail(userData.email)) {
-            hideLoader();
-            showToast('Por favor, insira um email válido', 'error');
+        // Validações básicas
+        if (!userData.email || !userData.password || !userData.confirmPassword) {
+            showToast('Preencha todos os campos', 'error');
             return;
         }
         
         if (userData.password !== userData.confirmPassword) {
-            hideLoader();
             showToast('As senhas não coincidem', 'error');
             return;
         }
         
         if (userData.password.length < 6) {
-            hideLoader();
             showToast('A senha deve ter pelo menos 6 caracteres', 'error');
             return;
         }
         
-        console.log('Starting registration process...');
+        const newUser = await supabaseRegister(userData);
         
-        try {
-            const newUser = await supabaseRegister(userData);
-            if (newUser) {
-                showToast('Conta criada com sucesso! 🎉', 'success');
-                setTimeout(() => {
-                    // Fazer login automaticamente após cadastro
-                    currentUser = newUser;
-                    isAuthenticated = true;
-                    
-                    products = defaultProducts;
-                    salesHistory = [];
-                    
-                    document.getElementById('authContainer').style.display = 'none';
-                    document.getElementById('appContainer').style.display = 'grid';
-                    updateSubscriptionStatus();
-                    initApp();
-                    
-                    showToast(`Bem-vindo, ${newUser.companyName}! 🚀`, 'success');
-                }, 1500);
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            hideLoader();
-            showToast('Erro ao criar conta. Tente novamente.', 'error');
+        if (newUser) {
+            showToast('Conta criada com sucesso! 🎉', 'success');
+            
+            // Fazer login automaticamente
+            currentUser = newUser;
+            isAuthenticated = true;
+            products = await loadUserProducts(newUser.id);
+            salesHistory = [];
+            
+            // Salvar sessão
+            localStorage.setItem('pdv_current_user', JSON.stringify(newUser));
+            
+            // Mostrar aplicação
+            setTimeout(() => {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'grid';
+                initApp();
+                showToast(`Bem-vindo, ${newUser.companyName}! 🚀`, 'success');
+            }, 1000);
         }
     }
 
@@ -2496,8 +2369,8 @@
         // Preencher dados da conta
         document.getElementById('accountCompanyName').textContent = currentUser.companyName;
         document.getElementById('accountEmail').textContent = currentUser.email;
-        document.getElementById('accountDocument').textContent = formatDocument(currentUser.document);
-        document.getElementById('accountPhone').textContent = formatPhone(currentUser.phone);
+        document.getElementById('accountDocument').textContent = currentUser.document || 'Não informado';
+        document.getElementById('accountPhone').textContent = currentUser.phone || 'Não informado';
         
         const createdAt = new Date(currentUser.createdAt);
         document.getElementById('accountCreatedAt').textContent = createdAt.toLocaleDateString('pt-BR');
@@ -2505,37 +2378,12 @@
         const validUntil = new Date(currentUser.validUntil);
         document.getElementById('accountValidUntil').textContent = validUntil.toLocaleDateString('pt-BR');
         
-        const nextBilling = new Date(currentUser.nextBilling);
-        document.getElementById('accountNextBilling').textContent = `R$ ${MONTHLY_PRICE.toFixed(2)} em ${nextBilling.toLocaleDateString('pt-BR')}`;
+        document.getElementById('accountNextBilling').textContent = `R$ ${MONTHLY_PRICE.toFixed(2)} em ${validUntil.toLocaleDateString('pt-BR')}`;
         
         document.getElementById('accountPlanStatus').textContent = currentUser.isTrial ? 'TRIAL' : 'PROFISSIONAL';
         
         // Mostrar modal
         document.getElementById('accountModal').style.display = 'flex';
-    }
-
-    function formatDocument(doc) {
-        const cleanDoc = doc.replace(/\D/g, '');
-        
-        if (cleanDoc.length === 11) {
-            return cleanDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        } else if (cleanDoc.length === 14) {
-            return cleanDoc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-        }
-        
-        return doc;
-    }
-
-    function formatPhone(phone) {
-        const cleanPhone = phone.replace(/\D/g, '');
-        
-        if (cleanPhone.length === 11) {
-            return cleanPhone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-        } else if (cleanPhone.length === 10) {
-            return cleanPhone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-        }
-        
-        return phone;
     }
 
     function upgradePlan() {
@@ -2552,8 +2400,11 @@
             currentUser = null;
             isAuthenticated = false;
             cart = [];
-            products = [];
+            products = [...defaultProducts];
             salesHistory = [];
+            
+            // Remover sessão salva
+            localStorage.removeItem('pdv_current_user');
             
             // Mostrar tela de login
             document.getElementById('appContainer').style.display = 'none';
@@ -2569,15 +2420,27 @@
     function init() {
         console.log(`${APP_NAME} v${APP_VERSION} inicializando...`);
         
-        // Verificar se há usuário logado no localStorage
-        const lastUser = JSON.parse(localStorage.getItem('pdv_last_user'));
-        if (lastUser && lastUser.remember) {
-            // Tentar login automático
-            loginUser(lastUser.email, lastUser.password);
-        } else {
-            // Mostrar tela de login
-            document.getElementById('authContainer').style.display = 'flex';
+        // Verificar se há usuário salvo
+        const savedUser = localStorage.getItem('pdv_current_user');
+        if (savedUser) {
+            try {
+                currentUser = JSON.parse(savedUser);
+                isAuthenticated = true;
+                
+                // Carregar aplicação direto
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'grid';
+                initApp();
+                showToast(`Bem-vindo de volta, ${currentUser.companyName}!`, 'success');
+                return;
+            } catch (e) {
+                console.error('Erro ao carregar usuário salvo:', e);
+                localStorage.removeItem('pdv_current_user');
+            }
         }
+        
+        // Mostrar tela de login
+        document.getElementById('authContainer').style.display = 'flex';
         
         // Configurar formulários
         setupAuthForms();
@@ -2594,11 +2457,6 @@
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             
-            if (!email || !password) {
-                showToast('Preencha todos os campos', 'error');
-                return;
-            }
-            
             loginUser(email, password);
         });
         
@@ -2606,34 +2464,16 @@
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const companyName = document.getElementById('regCompany').value.trim();
-            const documentNum = document.getElementById('regDocument').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
+            const companyName = document.getElementById('regCompany').value.trim() || 'Minha Empresa';
+            const documentNum = document.getElementById('regDocument').value.trim() || '00.000.000/0000-00';
+            const phone = document.getElementById('regPhone').value.trim() || '(11) 99999-9999';
             const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             const terms = document.getElementById('regTerms').checked;
             
-            console.log('Validating form...');
-            
-            if (!companyName || !documentNum || !phone || !email || !password || !confirmPassword) {
-                showToast('Preencha todos os campos', 'error');
-                console.log('Missing fields');
-                return;
-            }
-            
-            if (!validateEmail(email)) {
-                showToast('Por favor, insira um email válido', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showToast('As senhas não coincidem', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showToast('A senha deve ter pelo menos 6 caracteres', 'error');
+            if (!email || !password || !confirmPassword) {
+                showToast('Preencha todos os campos obrigatórios', 'error');
                 return;
             }
             
@@ -2641,8 +2481,6 @@
                 showToast('Você deve aceitar os termos de uso', 'error');
                 return;
             }
-            
-            console.log('All validations passed, registering...');
             
             registerUser({
                 companyName,
@@ -2669,6 +2507,7 @@
             setupKeyboardShortcuts();
             updateNotifications();
             updateLiveStats();
+            updateSubscriptionStatus();
             
             // Esconder loader após 1.5 segundos
             setTimeout(() => {
@@ -2805,10 +2644,7 @@
             if (!currentUser) return;
             
             // Salvar usuário atual para login automático
-            localStorage.setItem('pdv_last_user', JSON.stringify({
-                email: currentUser.email,
-                remember: true
-            }));
+            localStorage.setItem('pdv_current_user', JSON.stringify(currentUser));
             
             // Log silencioso
             console.log('Dados locais salvos');
@@ -2954,8 +2790,7 @@
                 // Tentar encontrar por ID, nome ou código
                 const found = products.find(p => 
                     p.id == term || 
-                    p.name.toLowerCase().includes(term) ||
-                    (p.barcode && p.barcode === term)
+                    p.name.toLowerCase().includes(term)
                 );
                 
                 if (found) {
