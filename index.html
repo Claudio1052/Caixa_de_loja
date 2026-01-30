@@ -6,12 +6,12 @@
     <title>PDV Mágico ✨ Pro | Conectado Supabase</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style> 
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
-    <style>
-        /* --- ESTILOS ORIGINAIS PRESERVADOS --- */
         :root {
             --bg-color: #e0e5ec;
             --glass: rgba(255, 255, 255, 0.85);
@@ -25,21 +25,15 @@
             --warning: #fdcb6e;
             --danger: #ff7675;
             --info: #0984e3;
+            --whatsapp: #25D366;
+            --email: #0984e3;
             --text: #2d3436;
             --text-light: #636e72;
             --shadow: 0 20px 40px rgba(31, 38, 135, 0.15);
+            --shadow-light: 0 10px 20px rgba(31, 38, 135, 0.1);
             --border: 1px solid rgba(255, 255, 255, 0.25);
-            --radius: 24px;
+            --border-radius: 24px;
             --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        body.dark-mode {
-            --bg-color: #2d3436;
-            --glass: rgba(45, 52, 54, 0.95);
-            --glass-dark: rgba(45, 52, 54, 0.98);
-            --text: #dfe6e9;
-            --text-light: #b2bec3;
-            --shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
@@ -50,189 +44,185 @@
             display: flex;
             padding: 20px;
             color: var(--text);
-            overflow: hidden;
-        }
-        body.dark-mode { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); }
-
-        /* Partículas */
-        .magic-particle {
-            position: absolute; width: 8px; height: 8px; background: var(--primary);
-            border-radius: 50%; pointer-events: none; opacity: 0.7; z-index: 1000;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* Container Principal */
+        /* Estrutura Principal */
         .app-container {
-            display: grid; grid-template-columns: 80px 1fr; width: 100%; height: calc(100vh - 40px);
-            background: var(--glass); backdrop-filter: blur(20px); border-radius: var(--radius);
-            box-shadow: var(--shadow); border: var(--border); overflow: hidden; z-index: 10;
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            width: 100%;
+            height: calc(100vh - 40px);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: var(--border);
+            overflow: hidden;
+            z-index: 10;
         }
 
         /* Sidebar */
         .sidebar {
-            display: flex; flex-direction: column; align-items: center; padding-top: 30px;
-            background: rgba(255,255,255,0.3); border-right: var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border-right: var(--border);
         }
+
         .nav-btn {
-            width: 56px; height: 56px; border-radius: 18px; border: none; background: transparent;
-            font-size: 1.5rem; margin-bottom: 15px; cursor: pointer; transition: var(--transition);
-            color: #b2bec3; display: flex; align-items: center; justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            border: none;
+            background: transparent;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #b2bec3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
-        .nav-btn:hover, .nav-btn.active { 
-            background: var(--primary); color: white; transform: scale(1.05); 
-            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+
+        .nav-btn:hover { transform: translateY(-5px); background: #fff; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2); }
+        .nav-btn.active { background: var(--primary); color: #fff; box-shadow: 0 10px 20px -5px rgba(108, 92, 231, 0.4); transform: scale(1.05); }
+
+        .nav-notification {
+            position: absolute; top: -5px; right: -5px; background: var(--danger); color: white;
+            font-size: 0.7rem; border-radius: 50%; width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center; font-weight: 800;
         }
 
         /* Conteúdo */
-        .content-area { padding: 30px; overflow-y: auto; position: relative; flex: 1; }
-        .section { display: none; animation: fadeIn 0.4s ease; height: 100%; }
+        .content-area { padding: 30px; overflow-y: auto; position: relative; width: 100%; }
+        .section { display: none; height: 100%; animation: fadeIn 0.5s ease; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PDV Grid */
-        .pdv-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; height: 100%; }
-        .product-list { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            gap: 20px; align-content: start; overflow-y: auto; padding-right: 10px; max-height: calc(100vh - 180px);
+        /* PDV Layout */
+        .pdv-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; height: calc(100% - 100px); }
+        
+        .product-list {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px; align-content: start; overflow-y: auto; padding-right: 10px;
+            max-height: calc(100vh - 200px);
         }
 
-        /* Cards de Produto */
         .product-card {
-            background: var(--glass-dark); border-radius: 22px; padding: 20px; text-align: center;
-            cursor: pointer; transition: var(--transition); position: relative;
-            border: 2px solid transparent; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            background: white; border-radius: 22px; padding: 20px; text-align: center;
+            cursor: pointer; transition: var(--transition); position: relative; overflow: hidden;
+            box-shadow: var(--shadow-light); border: 2px solid transparent;
         }
-        .product-card:hover { transform: translateY(-8px); border-color: var(--secondary); }
-        .product-emoji { font-size: 3rem; display: block; margin-bottom: 10px; }
-        .product-price { color: var(--primary); font-weight: 800; font-size: 1.2rem; }
-        .product-stock {
-            position: absolute; top: 10px; right: 10px; font-size: 0.75rem;
-            padding: 4px 8px; border-radius: 8px; background: #dfe6e9; font-weight: bold;
-        }
+
+        .product-card:hover { transform: translateY(-10px) scale(1.03); border-color: var(--secondary); box-shadow: 0 20px 40px rgba(0, 206, 201, 0.2); }
+        .product-emoji { font-size: 3.5rem; margin-bottom: 15px; display: block; }
+        .product-name { font-weight: 800; font-size: 1rem; margin-bottom: 8px; color: var(--text); }
+        .product-price { color: var(--primary); font-weight: 900; font-size: 1.3rem; }
+        .product-stock { position: absolute; top: 10px; right: 10px; font-size: 0.75rem; background: #dfe6e9; padding: 4px 10px; border-radius: 12px; font-weight: 700; }
         .stock-low { background: var(--danger); color: white; }
 
         /* Carrinho */
-        .cart-panel {
-            background: var(--glass-dark); border-radius: 28px; padding: 25px; 
-            display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow);
-        }
-        .cart-items { flex: 1; overflow-y: auto; margin: 20px 0; }
-        .cart-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.03);
-            border-radius: 12px; border-left: 4px solid var(--primary);
-        }
-        .qty-controls { display: flex; align-items: center; gap: 8px; }
-        .qty-btn {
-            width: 25px; height: 25px; border-radius: 8px; border: none; background: white;
-            cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        .cart-panel { background: white; border-radius: 28px; padding: 25px; display: flex; flex-direction: column; box-shadow: var(--shadow-light); height: 100%; }
+        .cart-items { flex: 1; overflow-y: auto; margin: 15px 0; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; margin-bottom: 12px; padding: 15px; border-radius: 16px; border-left: 4px solid var(--primary); }
+        .btn-checkout { background: linear-gradient(90deg, var(--primary), var(--primary-light)); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 1.2rem; cursor: pointer; width: 100%; transition: var(--transition); margin-top: auto; }
+        .btn-checkout:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4); }
 
-        /* Botão Checkout */
-        .btn-checkout {
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-            color: white; border: none; padding: 18px; border-radius: 18px;
-            font-weight: 800; font-size: 1.2rem; cursor: pointer; width: 100%;
-            transition: var(--transition); box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
-        }
-        .btn-checkout:hover { transform: translateY(-3px); }
-        .btn-checkout:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        /* Tabelas e Forms */
-        table { width: 100%; border-collapse: collapse; background: var(--glass-dark); border-radius: 16px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        th { background: rgba(108, 92, 231, 0.1); color: var(--primary); }
-        input, select {
-            width: 100%; padding: 12px; border-radius: 12px; border: 2px solid #dfe6e9;
-            background: var(--glass-dark); margin-bottom: 10px; font-size: 1rem;
-        }
+        /* Tabelas */
+        .table-container { background: white; padding: 25px; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-light); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #f1f2f6; }
+        th { color: var(--primary); font-weight: 800; background: #f8f9ff; }
+        
+        /* Inputs */
+        input, select { padding: 14px; border-radius: 14px; border: 2px solid #dfe6e9; width: 100%; margin-bottom: 10px; }
+        input:focus { border-color: var(--primary); outline: none; }
 
         /* Modais */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000;
-            justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; padding: 30px; border-radius: 24px; width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: zoomIn 0.3s ease;
-        }
-        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        /* Status & Toasts */
-        .connection-status {
-            position: absolute; top: 20px; right: 20px; padding: 8px 16px; border-radius: 20px;
-            font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px;
-            background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 40px; border-radius: 32px; width: 450px; max-width: 90%; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        
+        /* Status Conexão */
+        .connection-status { position: fixed; top: 10px; right: 20px; background: white; padding: 8px 15px; border-radius: 20px; box-shadow: var(--shadow-light); display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; z-index: 1000; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
         .online .status-dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
-        
-        .loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9);
-            z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;
-        }
-        .spinner {
-            width: 50px; height: 50px; border: 5px solid #dfe6e9; border-top-color: var(--primary);
-            border-radius: 50%; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .offline .status-dot { background: var(--danger); }
 
+        /* Toast */
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #333; color: white; padding: 16px 30px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; z-index: 3000; display: flex; align-items: center; gap: 15px; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
     </style>
 </head>
 <body>
+    
+    <div class="connection-status" id="connectionStatus">
+        <div class="status-dot"></div>
+        <span id="statusText">Conectando...</span>
+    </div>
 
-    <div id="loader" class="loader">
-        <div class="spinner"></div>
-        <h3 style="margin-top: 20px; color: var(--primary);">Carregando Sistema...</h3>
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span>Mensagem aqui</span>
     </div>
 
     <div class="app-container">
         <nav class="sidebar">
-            <button class="nav-btn active" onclick="switchTab('pdv')" title="Caixa"><i class="fas fa-cash-register"></i></button>
-            <button class="nav-btn" onclick="switchTab('stock')" title="Estoque"><i class="fas fa-boxes"></i></button>
-            <button class="nav-btn" onclick="switchTab('sales')" title="Vendas"><i class="fas fa-chart-line"></i></button>
-            <button class="nav-btn" onclick="toggleDarkMode()" title="Tema"><i class="fas fa-moon"></i></button>
+            <button class="nav-btn active" onclick="switchTab('pdv')" title="Vendas">
+                <i class="fas fa-shopping-cart"></i>
+            </button>
+            <button class="nav-btn" onclick="switchTab('stock')" title="Estoque">
+                <i class="fas fa-box-open"></i>
+            </button>
+            <button class="nav-btn" onclick="switchTab('history')" title="Histórico">
+                <i class="fas fa-history"></i>
+            </button>
+            <button class="nav-btn" onclick="switchTab('dashboard')" title="Dashboard">
+                <i class="fas fa-chart-pie"></i>
+            </button>
         </nav>
 
-        <div class="content-area">
+        <main class="content-area">
             
-            <div id="connectionStatus" class="connection-status">
-                <div class="status-dot"></div> <span id="statusText">Conectando...</span>
-            </div>
-
             <section id="pdv" class="section active">
-                <div class="pdv-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div>
-                        <h2><i class="fas fa-store"></i> PDV Mágico</h2>
-                        <p style="color: var(--text-light)">Caixa Aberto • Operador: Admin</p>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="searchInput" placeholder="🔍 Buscar ou bipar código..." onkeyup="filterProducts()" style="width: 300px; margin: 0;">
-                        <button class="nav-btn" style="width: 50px; height: 50px; margin: 0; border-radius: 12px; background: white;" onclick="startVoiceSearch()"><i class="fas fa-microphone"></i></button>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2><i class="fas fa-magic"></i> Caixa Mágico</h2>
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar produto..." oninput="renderPOS()" style="width: 300px; margin-bottom: 0;">
                 </div>
 
                 <div class="pdv-grid">
-                    <div id="productsGrid" class="product-list">
+                    <div class="product-list" id="productsGrid">
                         </div>
 
                     <div class="cart-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3><i class="fas fa-shopping-cart"></i> Carrinho</h3>
-                            <button onclick="clearCart()" style="background: none; border: none; color: var(--danger); cursor: pointer;"><i class="fas fa-trash"></i> Limpar</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3>🛒 Cesta</h3>
+                            <button onclick="clearCart()" style="background:none; border:none; color:var(--danger); cursor:pointer;">
+                                <i class="fas fa-trash"></i> Limpar
+                            </button>
                         </div>
                         
-                        <div id="cartItems" class="cart-items">
-                            <div style="text-align: center; color: #999; margin-top: 50px;">Carrinho vazio</div>
+                        <div class="cart-items" id="cartItems">
+                            <div style="text-align: center; color: #b2bec3; margin-top: 50px;">
+                                <i class="fas fa-basket-shopping" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                                <p>Cesta vazia...</p>
+                            </div>
                         </div>
 
-                        <div class="cart-footer">
-                            <div style="display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">
+                        <div style="border-top: 2px dashed #dfe6e9; padding-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: 900; margin-bottom: 20px; color: var(--primary);">
                                 <span>Total</span>
-                                <span id="cartTotal" style="color: var(--primary)">R$ 0,00</span>
+                                <span id="cartTotal">R$ 0,00</span>
                             </div>
-                            <button id="btnCheckout" class="btn-checkout" onclick="openPaymentModal()" disabled>
-                                Finalizar Venda <i class="fas fa-arrow-right"></i>
+                            <button class="btn-checkout" onclick="openPaymentModal()" id="btnCheckout" disabled>
+                                <i class="fas fa-bolt"></i> Finalizar Venda
                             </button>
                         </div>
                     </div>
@@ -240,14 +230,29 @@
             </section>
 
             <section id="stock" class="section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>Gestão de Estoque</h2>
-                    <button class="btn-checkout" style="width: auto; padding: 10px 20px; font-size: 1rem;" onclick="openModal('modalProduct')">
-                        <i class="fas fa-plus"></i> Novo Produto
-                    </button>
+                <h2><i class="fas fa-boxes"></i> Gerenciar Estoque</h2>
+                
+                <div class="table-container" style="margin-bottom: 30px;">
+                    <h3>✨ Adicionar Novo Produto</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                        <input type="text" id="newProdName" placeholder="Nome do Produto">
+                        <input type="number" id="newProdPrice" placeholder="Preço (R$)" step="0.01">
+                        <input type="number" id="newProdStock" placeholder="Qtd Inicial">
+                        <input type="text" id="newProdEmoji" placeholder="Emoji 📦" style="width: 80px; text-align: center;">
+                        <select id="newProdCategory">
+                            <option value="geral">Geral</option>
+                            <option value="alimento">Alimento</option>
+                            <option value="bebida">Bebida</option>
+                            <option value="eletronico">Eletrônico</option>
+                        </select>
+                        <button onclick="addProduct()" class="btn-checkout" style="width: auto; margin: 0; padding: 14px 30px;">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
-                <div style="overflow-x: auto;">
-                    <table id="stockTable">
+
+                <div class="table-container">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Item</th>
@@ -257,160 +262,407 @@
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="stockTableBody"></tbody>
+                        <tbody id="stockTableBody">
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <section id="sales" class="section">
-                <h2>Histórico de Vendas</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div style="background: var(--success); color: white; padding: 20px; border-radius: 16px;">
-                        <h3>Vendas Hoje</h3>
-                        <div id="todaySalesTotal" style="font-size: 2rem; font-weight: 800;">R$ 0,00</div>
-                    </div>
-                    <div style="background: white; padding: 20px; border-radius: 16px; height: 200px;">
+            <section id="history" class="section">
+                <h2><i class="fas fa-history"></i> Histórico de Vendas</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Data</th>
+                                <th>Itens</th>
+                                <th>Total</th>
+                                <th>Pagamento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+             <section id="dashboard" class="section">
+                <h2><i class="fas fa-chart-pie"></i> Dashboard</h2>
+                <div class="pdv-grid">
+                    <div class="table-container">
                         <canvas id="salesChart"></canvas>
                     </div>
+                    <div class="table-container">
+                         <h3>Resumo</h3>
+                         <p>Total Vendido Hoje: <strong id="dashTotalToday">R$ 0,00</strong></p>
+                         <p>Vendas Hoje: <strong id="dashCountToday">0</strong></p>
+                    </div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Data</th>
-                            <th>Forma Pagto</th>
-                            <th>Total</th>
-                            <th>Detalhes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salesTableBody"></tbody>
-                </table>
             </section>
-        </div>
+        </main>
     </div>
 
-    <div id="modalPayment" class="modal">
+    <div class="modal-overlay" id="paymentModal">
         <div class="modal-content">
-            <h2><i class="fas fa-wallet"></i> Pagamento</h2>
-            <h1 id="payModalTotal" style="color: var(--primary); margin: 20px 0;">R$ 0,00</h1>
+            <h2>💸 Confirmar Pagamento</h2>
+            <h1 id="modalTotal" style="color: var(--primary); font-size: 3rem; margin: 20px 0;">R$ 0,00</h1>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                <button class="qty-btn" style="width: 100%; height: 50px;" onclick="finalizeSale('Dinheiro')">💵 Dinheiro</button>
-                <button class="qty-btn" style="width: 100%; height: 50px;" onclick="finalizeSale('Pix')">💠 Pix</button>
-                <button class="qty-btn" style="width: 100%; height: 50px;" onclick="finalizeSale('Crédito')">💳 Crédito</button>
-                <button class="qty-btn" style="width: 100%; height: 50px;" onclick="finalizeSale('Débito')">💳 Débito</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <button onclick="processPayment('dinheiro')" class="btn-checkout" style="background: #00b894;">💵 Dinheiro</button>
+                <button onclick="processPayment('pix')" class="btn-checkout" style="background: #00cec9;">💠 Pix</button>
+                <button onclick="processPayment('cartao')" class="btn-checkout" style="background: #6c5ce7;">💳 Cartão</button>
+                <button onclick="closePaymentModal()" class="btn-checkout" style="background: #ff7675;">❌ Cancelar</button>
             </div>
-            
-            <button class="qty-btn" style="width: 100%; height: 50px; background: #eee;" onclick="openSplitPayment()">➗ Dividir Pagamento</button>
-            <br><br>
-            <button onclick="closeModal('modalPayment')" style="background: none; border: none; color: var(--danger); cursor: pointer;">Cancelar</button>
-        </div>
-    </div>
-
-    <div id="modalSplit" class="modal">
-        <div class="modal-content">
-            <h3>Dividir Pagamento</h3>
-            <p>Total: <b id="splitTotal">R$ 0,00</b></p>
-            <div style="margin: 20px 0;">
-                <input type="number" id="splitAmount1" placeholder="Valor 1ª pessoa">
-                <select id="splitMethod1"><option>Dinheiro</option><option>Pix</option><option>Cartão</option></select>
-                <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ccc;">
-                <input type="number" id="splitAmount2" placeholder="Valor Restante" readonly>
-                <select id="splitMethod2"><option>Dinheiro</option><option>Pix</option><option>Cartão</option></select>
-            </div>
-            <button class="btn-checkout" onclick="finalizeSplitSale()">Confirmar Divisão</button>
-            <button onclick="closeModal('modalSplit')" style="margin-top:10px; background:none; border:none; color:red;">Voltar</button>
-        </div>
-    </div>
-
-    <div id="modalProduct" class="modal">
-        <div class="modal-content">
-            <h2>Novo Produto</h2>
-            <form onsubmit="event.preventDefault(); saveNewProduct();">
-                <input type="text" id="newProdName" placeholder="Nome do Produto" required>
-                <div style="display: flex; gap: 10px;">
-                    <input type="number" id="newProdPrice" placeholder="Preço" step="0.01" required>
-                    <input type="number" id="newProdStock" placeholder="Estoque" required>
-                </div>
-                <input type="text" id="newProdBarcode" placeholder="Código de Barras (Opcional)">
-                <input type="text" id="newProdEmoji" placeholder="Emoji (ex: 🍔)" value="📦">
-                <select id="newProdCategory">
-                    <option value="Geral">Geral</option>
-                    <option value="Alimentação">Alimentação</option>
-                    <option value="Bebidas">Bebidas</option>
-                    <option value="Eletrônicos">Eletrônicos</option>
-                </select>
-                <button type="submit" class="btn-checkout" style="background: var(--success); margin-top: 10px;">Salvar</button>
-                <button type="button" onclick="closeModal('modalProduct')" style="margin-top: 10px; background: none; border: none; color: red; width: 100%;">Cancelar</button>
-            </form>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURAÇÃO DO SUPABASE ---
-        const PROJECT_URL = 'https://kbucnveojexlxlnefmdo.supabase.co';
-        const PUBLIC_KEY = 'sb_publishable_NpxLW4j6N0gqFmwC5D4dXQ_ohJ4Rv-n'; 
-        const supabase = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+        // --- CONFIGURAÇÃO SUPABASE ---
+        const supabaseUrl = 'https://kbucnveojexlxlnefmdo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidWNudmVvamV4bHhsbmVmbWRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTUzOTgsImV4cCI6MjA4NTI3MTM5OH0.usSiBO518-4rdkvVxq1QAi71hCLTicIurfAu2N0gShs';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- 2. ESTADO GLOBAL ---
+        // --- ESTADO DO SISTEMA ---
         let products = [];
         let cart = [];
         let salesHistory = [];
         let isOnline = false;
 
-        // --- 3. INICIALIZAÇÃO ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initSystem();
-        });
+        // Produtos padrão para fallback caso o banco esteja vazio
+        const defaultProducts = [
+            { id: 1, name: 'Hambúrguer Mágico', price: 25.00, stock: 20, emoji: '🍔', category: 'alimento' },
+            { id: 2, name: 'Poção de Cafeína', price: 8.50, stock: 50, emoji: '☕', category: 'bebida' }
+        ];
 
-        async function initSystem() {
+        // --- INICIALIZAÇÃO ---
+        async function init() {
+            console.log("Iniciando PDV...");
+            await checkConnection();
+            
+            if(isOnline) {
+                await loadDataFromSupabase();
+            } else {
+                loadLocalData();
+            }
+
+            renderAll();
+            setInterval(checkConnection, 30000); // Checa conexão a cada 30s
+        }
+
+        async function checkConnection() {
             try {
-                // Carregar Dados
-                const { data: prodData, error: prodError } = await supabase.from('products').select('*').order('name');
-                if (prodError) throw prodError;
-                products = prodData || [];
-
-                const { data: salesData, error: salesError } = await supabase.from('sales').select('*').order('date', { ascending: false }).limit(50);
-                if (salesError) throw salesError;
-                salesHistory = salesData || [];
-
-                // Renderizar
-                renderProducts();
-                renderStockTable();
-                renderSalesHistory();
-                updateChart();
-                
-                // Status
-                isOnline = true;
-                updateStatus(true);
-            } catch (error) {
-                console.error("Erro crítico:", error);
-                updateStatus(false);
-                alert("Erro ao carregar dados. Verifique sua conexão.");
-            } finally {
-                document.getElementById('loader').style.display = 'none';
+                const { data, error } = await supabase.from('produtos').select('count', { count: 'exact', head: true });
+                if (!error) {
+                    isOnline = true;
+                    document.getElementById('connectionStatus').className = 'connection-status online';
+                    document.getElementById('statusText').innerText = 'Online • Supabase';
+                } else {
+                    throw error;
+                }
+            } catch (e) {
+                console.log('Offline:', e);
+                isOnline = false;
+                document.getElementById('connectionStatus').className = 'connection-status offline';
+                document.getElementById('statusText').innerText = 'Offline • Local';
             }
         }
 
-        // --- 4. FUNÇÕES DE RENDERIZAÇÃO ---
-        function renderProducts(filter = '') {
-            const grid = document.getElementById('productsGrid');
-            grid.innerHTML = '';
+        // --- GERENCIAMENTO DE DADOS ---
+        async function loadDataFromSupabase() {
+            try {
+                // 1. Carregar Produtos
+                let { data: dbProds, error: errProds } = await supabase.from('produtos').select('*').order('nome');
+                
+                if (errProds) throw errProds;
+
+                if (dbProds && dbProds.length > 0) {
+                    products = dbProds.map(p => ({
+                        id: p.id,
+                        name: p.nome,
+                        price: parseFloat(p.preco),
+                        stock: parseInt(p.estoque),
+                        emoji: p.emoji || '📦',
+                        category: p.categoria
+                    }));
+                } else {
+                    // Se banco vazio, popula com default (opcional)
+                    products = []; 
+                }
+
+                // 2. Carregar Histórico
+                let { data: dbSales, error: errSales } = await supabase
+                    .from('vendas')
+                    .select('*, itens_venda(*)')
+                    .order('data_hora', { ascending: false })
+                    .limit(50);
+
+                if (!errSales && dbSales) {
+                    salesHistory = dbSales.map(s => ({
+                        id: s.id,
+                        date: new Date(s.data_hora).toLocaleString('pt-BR'),
+                        total: parseFloat(s.total),
+                        method: s.metodo_pagamento,
+                        items: s.itens_venda
+                    }));
+                }
+
+                // Salvar cache local
+                localStorage.setItem('products', JSON.stringify(products));
+                localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+
+            } catch (error) {
+                console.error("Erro ao carregar do Supabase:", error);
+                showToast("Erro ao sincronizar dados.", "error");
+                loadLocalData();
+            }
+        }
+
+        function loadLocalData() {
+            const savedProds = localStorage.getItem('products');
+            if (savedProds) products = JSON.parse(savedProds);
+            else products = defaultProducts; // fallback inicial
+        }
+
+        // --- FUNÇÕES DE VENDAS ---
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            if (product.stock <= 0) {
+                showToast(`Sem estoque de ${product.name}!`, 'error');
+                return;
+            }
+
+            const existingItem = cart.find(item => item.id === productId);
+            if (existingItem) {
+                if (existingItem.qty < product.stock) {
+                    existingItem.qty++;
+                } else {
+                    showToast('Estoque máximo atingido no carrinho', 'warning');
+                }
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItems');
+            const totalEl = document.getElementById('cartTotal');
+            const btn = document.getElementById('btnCheckout');
             
-            const filtered = products.filter(p => 
-                p.name.toLowerCase().includes(filter.toLowerCase()) || 
-                (p.barcode && p.barcode.includes(filter))
-            );
+            container.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: #b2bec3; margin-top: 50px;"><i class="fas fa-basket-shopping" style="font-size: 3rem; margin-bottom: 10px;"></i><p>Cesta vazia...</p></div>`;
+                btn.disabled = true;
+                totalEl.innerText = 'R$ 0,00';
+                return;
+            }
+
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:bold;">${item.name}</div>
+                        <div style="font-size:0.85rem; color:#636e72;">${item.qty}x R$ ${item.price.toFixed(2)}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-weight:bold; color:var(--primary);">R$ ${itemTotal.toFixed(2)}</span>
+                        <i class="fas fa-trash" onclick="removeFromCart(${index})" style="color:var(--danger); cursor:pointer;"></i>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            totalEl.innerText = `R$ ${total.toFixed(2)}`;
+            btn.disabled = false;
+        }
+
+        function openPaymentModal() {
+            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            document.getElementById('modalTotal').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        async function processPayment(method) {
+            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const saleId = 'V' + Date.now();
+            const saleData = {
+                id: saleId,
+                total: total,
+                subtotal: total,
+                desconto: 0,
+                metodo_pagamento: method,
+                itens_count: cart.reduce((acc, i) => acc + i.qty, 0),
+                tempo_processamento: 0
+            };
+
+            // Atualizar UI imediatamente (Optimistic UI)
+            closePaymentModal();
+            showToast('Processando venda...', 'success');
+
+            // Atualizar estoque local
+            cart.forEach(cartItem => {
+                const product = products.find(p => p.id === cartItem.id);
+                if (product) product.stock -= cartItem.qty;
+            });
+
+            if (isOnline) {
+                try {
+                    // 1. Salvar Venda
+                    const { error: saleErr } = await supabase.from('vendas').insert(saleData);
+                    if (saleErr) throw saleErr;
+
+                    // 2. Salvar Itens
+                    const itemsPayload = cart.map(item => ({
+                        venda_id: saleId,
+                        produto_id: item.id,
+                        nome_produto: item.name,
+                        quantidade: item.qty,
+                        preco_unitario: item.price,
+                        total_item: item.price * item.qty
+                    }));
+                    
+                    const { error: itemsErr } = await supabase.from('itens_venda').insert(itemsPayload);
+                    if (itemsErr) throw itemsErr;
+
+                    // 3. Atualizar Estoque no Banco
+                    for (const item of cart) {
+                        const newStock = products.find(p => p.id === item.id).stock;
+                        await supabase.from('produtos').update({ estoque: newStock }).eq('id', item.id);
+                    }
+
+                    showToast('Venda salva no Supabase! ✨', 'success');
+
+                } catch (err) {
+                    console.error("Erro na venda online:", err);
+                    showToast('Venda salva apenas localmente (Erro Sync)', 'warning');
+                }
+            } else {
+                showToast('Venda salva localmente (Offline)', 'warning');
+            }
+
+            // Atualizar histórico local
+            salesHistory.unshift({
+                id: saleId,
+                date: new Date().toLocaleString(),
+                total: total,
+                method: method,
+                items: [...cart]
+            });
+            
+            cart = [];
+            renderAll();
+            saveLocalData(); // Backup local
+        }
+
+        // --- GERENCIAMENTO DE PRODUTOS ---
+        async function addProduct() {
+            const name = document.getElementById('newProdName').value;
+            const price = parseFloat(document.getElementById('newProdPrice').value);
+            const stock = parseInt(document.getElementById('newProdStock').value);
+            const emoji = document.getElementById('newProdEmoji').value || '📦';
+            const category = document.getElementById('newProdCategory').value;
+
+            if (!name || isNaN(price) || isNaN(stock)) {
+                showToast('Preencha os campos corretamente', 'error');
+                return;
+            }
+
+            const newProd = { nome: name, preco: price, estoque: stock, emoji, categoria };
+
+            if (isOnline) {
+                try {
+                    const { data, error } = await supabase.from('produtos').insert([newProd]).select().single();
+                    if (error) throw error;
+                    
+                    // Adicionar ao array local com o ID real do banco
+                    products.push({
+                        id: data.id,
+                        name: data.nome,
+                        price: data.preco,
+                        stock: data.estoque,
+                        emoji: data.emoji,
+                        category: data.categoria
+                    });
+                    showToast('Produto cadastrado! 🚀', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showToast('Erro ao salvar no banco', 'error');
+                    return;
+                }
+            } else {
+                // Modo offline (ID temporário)
+                products.push({ id: Date.now(), name, price, stock, emoji, category });
+                showToast('Salvo offline', 'warning');
+            }
+
+            // Limpar form
+            document.getElementById('newProdName').value = '';
+            document.getElementById('newProdPrice').value = '';
+            document.getElementById('newProdStock').value = '';
+            renderAll();
+            saveLocalData();
+        }
+
+        async function deleteProduct(id) {
+            if(!confirm("Excluir este produto?")) return;
+
+            if(isOnline) {
+                const { error } = await supabase.from('produtos').delete().eq('id', id);
+                if(error) {
+                    showToast("Erro ao excluir", "error");
+                    return;
+                }
+            }
+            
+            products = products.filter(p => p.id !== id);
+            renderAll();
+            saveLocalData();
+            showToast("Produto removido", "success");
+        }
+
+        // --- RENDERIZAÇÃO GERAL ---
+        function renderAll() {
+            renderPOS();
+            renderStockTable();
+            renderHistory();
+            renderDashboard();
+            renderCart();
+        }
+
+        function renderPOS() {
+            const grid = document.getElementById('productsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            grid.innerHTML = '';
+
+            const filtered = products.filter(p => p.name.toLowerCase().includes(search));
 
             filtered.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.onclick = () => addToCart(p.id);
                 
-                let stockClass = p.stock <= 5 ? 'stock-low' : '';
-                
+                let stockBadge = '';
+                if(p.stock < 5) stockBadge = 'stock-low';
+
                 card.innerHTML = `
-                    <span class="product-stock ${stockClass}">${p.stock} un</span>
+                    <span class="product-stock ${stockBadge}">${p.stock} un</span>
                     <span class="product-emoji">${p.emoji}</span>
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">R$ ${p.price.toFixed(2)}</div>
@@ -423,324 +675,78 @@
             const tbody = document.getElementById('stockTableBody');
             tbody.innerHTML = '';
             products.forEach(p => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${p.emoji} ${p.name}</td>
-                    <td>R$ ${p.price.toFixed(2)}</td>
-                    <td>
-                        <input type="number" value="${p.stock}" 
-                            onchange="updateStock(${p.id}, this.value)" 
-                            style="width: 80px; margin:0; padding: 5px;">
-                    </td>
-                    <td>${p.category || '-'}</td>
-                    <td>
-                        <button class="qty-btn" onclick="deleteProduct(${p.id})" style="color:red"><i class="fas fa-trash"></i></button>
-                    </td>
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${p.emoji} ${p.name}</td>
+                        <td>R$ ${p.price.toFixed(2)}</td>
+                        <td>${p.stock}</td>
+                        <td>${p.category}</td>
+                        <td>
+                            <button onclick="deleteProduct(${p.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
                 `;
-                tbody.appendChild(row);
             });
         }
 
-        function renderSalesHistory() {
+        function renderHistory() {
             const tbody = document.getElementById('salesTableBody');
             tbody.innerHTML = '';
-            
-            let totalToday = 0;
-            const today = new Date().toDateString();
-
             salesHistory.forEach(s => {
-                const saleDate = new Date(s.date);
-                if(saleDate.toDateString() === today) totalToday += s.total;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>#${s.id}</td>
-                    <td>${saleDate.toLocaleDateString()} ${saleDate.toLocaleTimeString()}</td>
-                    <td>${s.payment_method}</td>
-                    <td style="color: var(--success); font-weight: bold;">R$ ${s.total.toFixed(2)}</td>
-                    <td><button class="qty-btn"><i class="fas fa-eye"></i></button></td>
+                // Tenta contar itens de forma robusta (seja objeto supabase ou local)
+                const itemsCount = s.items ? s.items.length : 0; 
+                tbody.innerHTML += `
+                    <tr>
+                        <td><small>${s.id.slice(0,8)}...</small></td>
+                        <td>${s.date}</td>
+                        <td>${itemsCount} itens</td>
+                        <td style="color:var(--success); font-weight:bold;">R$ ${s.total.toFixed(2)}</td>
+                        <td>${s.method}</td>
+                    </tr>
                 `;
-                tbody.appendChild(row);
-            });
-
-            document.getElementById('todaySalesTotal').textContent = `R$ ${totalToday.toFixed(2)}`;
-        }
-
-        // --- 5. LÓGICA DO CARRINHO ---
-        function addToCart(id) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-            if (product.stock <= 0) return createParticleEffect(event.clientX, event.clientY, 'red'); // Efeito visual de erro
-
-            const existing = cart.find(item => item.id === id);
-            if (existing) {
-                if(existing.qty >= product.stock) return alert("Estoque máximo atingido!");
-                existing.qty++;
-            } else {
-                cart.push({ ...product, qty: 1 });
-            }
-            
-            createParticleEffect(event.clientX, event.clientY); // Partículas Mágicas!
-            renderCart();
-        }
-
-        function renderCart() {
-            const container = document.getElementById('cartItems');
-            const totalEl = document.getElementById('cartTotal');
-            container.innerHTML = '';
-            let total = 0;
-
-            cart.forEach((item, index) => {
-                total += item.price * item.qty;
-                const div = document.createElement('div');
-                div.className = 'cart-item';
-                div.innerHTML = `
-                    <div>
-                        <div style="font-weight:bold">${item.name}</div>
-                        <small>R$ ${item.price.toFixed(2)}</small>
-                    </div>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
-                        <span>${item.qty}</span>
-                        <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-
-            totalEl.innerText = `R$ ${total.toFixed(2)}`;
-            document.getElementById('btnCheckout').disabled = cart.length === 0;
-            
-            // Atualiza total nos modais
-            document.getElementById('payModalTotal').innerText = `R$ ${total.toFixed(2)}`;
-        }
-
-        function changeQty(index, delta) {
-            const item = cart[index];
-            const product = products.find(p => p.id === item.id);
-            
-            const newQty = item.qty + delta;
-            if (newQty > product.stock) return alert("Limite de estoque!");
-            if (newQty <= 0) cart.splice(index, 1);
-            else item.qty = newQty;
-            
-            renderCart();
-        }
-
-        function clearCart() {
-            if(confirm("Limpar carrinho?")) {
-                cart = [];
-                renderCart();
-            }
-        }
-
-        // --- 6. VENDA E BANCO DE DADOS ---
-        async function finalizeSale(method) {
-            if(cart.length === 0) return;
-            
-            document.getElementById('loader').style.display = 'flex';
-            closeModal('modalPayment');
-            closeModal('modalSplit');
-
-            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-
-            try {
-                // 1. Salvar Venda
-                const salePayload = {
-                    total: total,
-                    payment_method: method,
-                    items: cart,
-                    date: new Date().toISOString()
-                };
-                
-                const { data: saleData, error: saleError } = await supabase.from('sales').insert([salePayload]).select();
-                if(saleError) throw saleError;
-
-                // 2. Baixar Estoque
-                for (const item of cart) {
-                    const product = products.find(p => p.id === item.id);
-                    if(product) {
-                        const newStock = product.stock - item.qty;
-                        await supabase.from('products').update({ stock: newStock }).eq('id', item.id);
-                        product.stock = newStock; // Atualiza local
-                    }
-                }
-
-                // 3. Atualizar UI
-                salesHistory.unshift(saleData[0]);
-                cart = [];
-                renderCart();
-                renderProducts();
-                renderStockTable();
-                renderSalesHistory();
-                updateChart();
-                
-                alert(`✅ Venda de R$ ${total.toFixed(2)} realizada com sucesso!`);
-
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao processar venda no sistema.");
-            } finally {
-                document.getElementById('loader').style.display = 'none';
-            }
-        }
-
-        // --- 7. ADMINISTRAÇÃO (CRUD) ---
-        async function saveNewProduct() {
-            const name = document.getElementById('newProdName').value;
-            const price = parseFloat(document.getElementById('newProdPrice').value);
-            const stock = parseInt(document.getElementById('newProdStock').value);
-            const emoji = document.getElementById('newProdEmoji').value;
-            const category = document.getElementById('newProdCategory').value;
-            const barcode = document.getElementById('newProdBarcode').value;
-
-            try {
-                const { data, error } = await supabase
-                    .from('products')
-                    .insert([{ name, price, stock, emoji, category, barcode }])
-                    .select();
-                
-                if(error) throw error;
-                
-                products.push(data[0]);
-                renderProducts();
-                renderStockTable();
-                closeModal('modalProduct');
-                alert("Produto cadastrado!");
-            } catch(e) {
-                alert("Erro ao salvar produto.");
-            }
-        }
-
-        async function deleteProduct(id) {
-            if(!confirm("Tem certeza que deseja apagar?")) return;
-            try {
-                await supabase.from('products').delete().eq('id', id);
-                products = products.filter(p => p.id !== id);
-                renderProducts();
-                renderStockTable();
-            } catch(e) { alert("Erro ao deletar"); }
-        }
-
-        async function updateStock(id, newStock) {
-            try {
-                await supabase.from('products').update({ stock: parseInt(newStock) }).eq('id', id);
-                const p = products.find(x => x.id === id);
-                if(p) p.stock = parseInt(newStock);
-                renderProducts(); // Atualiza badge de estoque na grid
-            } catch(e) { console.error("Erro update stock", e); }
-        }
-
-        // --- 8. EXTRAS AVANÇADOS (Divisão, Voice, Chart, Partículas) ---
-
-        // Divisão de Pagamento
-        function openSplitPayment() {
-            closeModal('modalPayment');
-            openModal('modalSplit');
-            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            document.getElementById('splitTotal').innerText = `R$ ${total.toFixed(2)}`;
-            
-            const input1 = document.getElementById('splitAmount1');
-            input1.value = (total / 2).toFixed(2);
-            document.getElementById('splitAmount2').value = (total - parseFloat(input1.value)).toFixed(2);
-            
-            input1.oninput = () => {
-                const val = parseFloat(input1.value) || 0;
-                document.getElementById('splitAmount2').value = (total - val).toFixed(2);
-            };
-        }
-
-        function finalizeSplitSale() {
-            const m1 = document.getElementById('splitMethod1').value;
-            const m2 = document.getElementById('splitMethod2').value;
-            finalizeSale(`Split: ${m1} / ${m2}`);
-        }
-
-        // Pesquisa por Voz
-        function startVoiceSearch() {
-            if (!('webkitSpeechRecognition' in window)) return alert("Seu navegador não suporta voz.");
-            const recognition = new webkitSpeechRecognition();
-            recognition.lang = 'pt-BR';
-            recognition.start();
-            recognition.onresult = (e) => {
-                const text = e.results[0][0].transcript;
-                document.getElementById('searchInput').value = text;
-                filterProducts();
-            };
-        }
-
-        // Partículas Mágicas (Visual)
-        function createParticleEffect(x, y, color = null) {
-            for (let i = 0; i < 8; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'magic-particle';
-                if(color) particle.style.background = color;
-                particle.style.left = x + 'px';
-                particle.style.top = y + 'px';
-                document.body.appendChild(particle);
-
-                const destX = (Math.random() - 0.5) * 100;
-                const destY = (Math.random() - 0.5) * 100;
-
-                particle.animate([
-                    { transform: 'translate(0,0)', opacity: 1 },
-                    { transform: `translate(${destX}px, ${destY}px)`, opacity: 0 }
-                ], { duration: 800, easing: 'ease-out' });
-
-                setTimeout(() => particle.remove(), 800);
-            }
-        }
-
-        // Gráfico (Chart.js)
-        function updateChart() {
-            const ctx = document.getElementById('salesChart');
-            if(!ctx) return;
-            
-            // Agrupar vendas por data (simples) ou método
-            const stats = {};
-            salesHistory.forEach(s => {
-                const k = s.payment_method.split(' ')[0]; // Pega primeiro nome do método
-                stats[k] = (stats[k] || 0) + s.total;
-            });
-
-            if(window.myChart) window.myChart.destroy();
-            
-            window.myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(stats),
-                    datasets: [{
-                        data: Object.values(stats),
-                        backgroundColor: ['#6c5ce7', '#00cec9', '#fd79a8', '#ffeaa7']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        // Utils
-        function switchTab(id) {
+        function renderDashboard() {
+             // Simples dashboard
+             const today = new Date().toLocaleDateString();
+             const salesToday = salesHistory.filter(s => s.date.includes(today));
+             const totalToday = salesToday.reduce((acc, s) => acc + s.total, 0);
+
+             document.getElementById('dashTotalToday').innerText = `R$ ${totalToday.toFixed(2)}`;
+             document.getElementById('dashCountToday').innerText = salesToday.length;
+        }
+
+        // Helpers
+        function saveLocalData() {
+            localStorage.setItem('products', JSON.stringify(products));
+            localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+        }
+
+        function switchTab(tabId) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
         }
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function openPaymentModal() { if(cart.length > 0) openModal('modalPayment'); }
-        function filterProducts() { renderProducts(document.getElementById('searchInput').value); }
-        function updateStatus(online) {
-            const el = document.getElementById('connectionStatus');
-            const txt = document.getElementById('statusText');
-            if(online) {
-                el.classList.add('online');
-                txt.innerText = "Online (Supabase)";
-            } else {
-                el.classList.remove('online');
-                txt.innerText = "Offline";
-            }
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.className = `toast show ${type}`;
+            t.querySelector('span').innerText = msg;
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        // Start
+        window.onload = init;
 
     </script>
 </body>
