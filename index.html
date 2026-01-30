@@ -1748,30 +1748,33 @@
     <span class="toast-message">Operação realizada com sucesso!</span>
 </div>
 
-<!-- Incluir Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Incluir Nhost JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@nhost/nhost-js@2"></script>
 
 <script>
     // ============================================
-    // SISTEMA PDV MÁGICO PRO - COM SUPABASE (VERSÃO CORRIGIDA E COMPLETA)
+    // SISTEMA PDV MÁGICO PRO - COM NHOST.IO
     // ============================================
 
-    // --- CONFIGURAÇÃO DO SUPABASE ---
-    const SUPABASE_URL = 'https://kbucnveojexlxlnefmdo.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidWNudmVvamV4bHhsbmVmbWRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTUzOTgsImV4cCI6MjA4NTI3MTM5OH0.usSiBO518-4rdkvVxq1QAi71hCLTicIurfAu2N0gShs';
-
-    // Inicializar cliente Supabase
-    let supabase;
+    // --- CONFIGURAÇÃO DO NHOST.IO ---
+    const NHOST_SUBDOMAIN = 'zywyxusjrpylxofrtshp';
+    const NHOST_REGION = 'sa-east-1';
+    
+    // Inicializar cliente Nhost
+    let nhostClient;
     try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase inicializado com sucesso');
+        nhostClient = window.Nhost.createClient({
+            subdomain: NHOST_SUBDOMAIN,
+            region: NHOST_REGION
+        });
+        console.log('Nhost inicializado com sucesso');
     } catch (error) {
-        console.error('Erro ao inicializar Supabase:', error);
+        console.error('Erro ao inicializar Nhost:', error);
     }
 
     // --- CONFIGURAÇÃO INICIAL ---
     const APP_NAME = "PDV Mágico Pro";
-    const APP_VERSION = "2.3.1"; // Versão com correções de login
+    const APP_VERSION = "3.0.0";
     const APP_AUTHOR = "Sistema Inteligente";
     const MONTHLY_PRICE = 29.90;
     const TRIAL_DAYS = 7;
@@ -1867,7 +1870,7 @@
         processingTime: 0
     };
 
-    // --- FUNÇÕES SUPABASE CORRIGIDAS ---
+    // --- FUNÇÕES NHOST.IO ---
 
     // Função de hash simples para demonstração
     function simpleHash(str) {
@@ -1880,58 +1883,104 @@
         return Math.abs(hash).toString(16);
     }
 
-    async function supabaseLogin(email, password) {
+    async function nhostLogin(email, password) {
         showLoader();
         
         try {
-            if (!supabase) {
-                throw new Error('Supabase não inicializado');
+            if (!nhostClient) {
+                throw new Error('Nhost não inicializado');
             }
 
-            console.log('Tentando login para:', email);
+            console.log('Tentando login no Nhost para:', email);
             
-            // Calcular hash da senha
-            const passwordHash = simpleHash(password);
-            
-            // Buscar usuário
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('email', email)
-                .eq('password_hash', passwordHash);
+            // Fazer login no Nhost
+            const { session, error } = await nhostClient.auth.signIn({
+                email: email,
+                password: password
+            });
             
             if (error) {
-                console.error('Erro no login Supabase:', error);
-                hideLoader();
-                showToast('Erro ao conectar ao servidor', 'error');
-                return null;
-            }
-            
-            if (!data || data.length === 0) {
+                console.error('Erro no login Nhost:', error);
                 hideLoader();
                 showToast('Email ou senha incorretos', 'error');
                 return null;
             }
             
-            const user = data[0];
-            console.log('Usuário encontrado:', user.id);
+            if (!session) {
+                hideLoader();
+                showToast('Falha no login', 'error');
+                return null;
+            }
+            
+            console.log('Login Nhost bem-sucedido:', session.user.id);
+            
+            // Buscar dados adicionais do usuário na tabela 'users'
+            const { data: userData, error: userError } = await nhostClient.graphql.request(`
+                query GetUserData($userId: uuid!) {
+                    users_by_pk(id: $userId) {
+                        id
+                        email
+                        company_name
+                        document
+                        phone
+                        created_at
+                        plan
+                        status
+                        valid_until
+                        is_trial
+                    }
+                }
+            `, {
+                userId: session.user.id
+            });
+            
+            let userProfile;
+            if (userError || !userData?.users_by_pk) {
+                console.log('Criando perfil padrão para usuário');
+                // Criar perfil padrão se não existir
+                userProfile = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    company_name: 'Minha Empresa',
+                    document: '',
+                    phone: '',
+                    created_at: new Date().toISOString(),
+                    plan: 'professional',
+                    status: 'active',
+                    valid_until: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+                    is_trial: true
+                };
+                
+                // Inserir perfil na tabela users
+                await nhostClient.graphql.request(`
+                    mutation InsertUserProfile($user: users_insert_input!) {
+                        insert_users_one(object: $user) {
+                            id
+                        }
+                    }
+                `, {
+                    user: userProfile
+                });
+            } else {
+                userProfile = userData.users_by_pk;
+            }
             
             // Converter para formato interno
-            const userData = {
-                id: user.id,
-                email: user.email,
-                companyName: user.company_name || 'Minha Empresa',
-                document: user.document || '',
-                phone: user.phone || '',
-                createdAt: user.created_at || new Date().toISOString(),
-                plan: user.plan || 'professional',
-                status: user.status || 'active',
-                validUntil: user.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                isTrial: user.is_trial !== false
+            const userDataFormatted = {
+                id: userProfile.id,
+                email: userProfile.email,
+                companyName: userProfile.company_name || 'Minha Empresa',
+                document: userProfile.document || '',
+                phone: userProfile.phone || '',
+                createdAt: userProfile.created_at || new Date().toISOString(),
+                plan: userProfile.plan || 'professional',
+                status: userProfile.status || 'active',
+                validUntil: userProfile.valid_until || new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+                isTrial: userProfile.is_trial !== false
             };
             
             hideLoader();
-            return userData;
+            return userDataFormatted;
             
         } catch (error) {
             console.error('Erro no login:', error);
@@ -1941,81 +1990,112 @@
         }
     }
 
-    async function supabaseRegister(userData) {
+    async function nhostRegister(userData) {
         showLoader();
         
         try {
-            if (!supabase) {
-                throw new Error('Supabase não inicializado');
+            if (!nhostClient) {
+                throw new Error('Nhost não inicializado');
             }
 
-            // Verificar se email já existe
-            const { data: existingUsers, error: checkError } = await supabase
-                .from('users')
-                .select('id')
-                .eq('email', userData.email);
+            console.log('Registrando novo usuário no Nhost:', userData.email);
             
-            if (checkError) {
-                console.error('Erro ao verificar email:', checkError);
-            }
+            // Registrar usuário no Nhost Auth
+            const { session, error } = await nhostClient.auth.signUp({
+                email: userData.email,
+                password: userData.password,
+                options: {
+                    displayName: userData.companyName,
+                    metadata: {
+                        company: userData.companyName,
+                        document: userData.document,
+                        phone: userData.phone
+                    }
+                }
+            });
             
-            if (existingUsers && existingUsers.length > 0) {
+            if (error) {
+                console.error('Erro no registro Nhost:', error);
                 hideLoader();
-                showToast('Este email já está cadastrado', 'error');
+                if (error.message.includes('already exists')) {
+                    showToast('Este email já está cadastrado', 'error');
+                } else {
+                    showToast('Erro ao criar conta: ' + error.message, 'error');
+                }
                 return null;
             }
             
-            // Calcular datas
+            if (!session) {
+                hideLoader();
+                showToast('Falha no registro', 'error');
+                return null;
+            }
+            
+            console.log('Usuário registrado no Nhost:', session.user.id);
+            
+            // Criar perfil na tabela 'users'
             const now = new Date();
             const trialEnd = new Date(now);
             trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
             
-            // Calcular hash da senha
-            const passwordHash = simpleHash(userData.password);
-            
-            // Inserir usuário
-            const { data: newUser, error: insertError } = await supabase
-                .from('users')
-                .insert([{
+            const { data: profileData, error: profileError } = await nhostClient.graphql.request(`
+                mutation InsertUserProfile($user: users_insert_input!) {
+                    insert_users_one(object: $user) {
+                        id
+                        email
+                        company_name
+                        document
+                        phone
+                        created_at
+                        plan
+                        status
+                        valid_until
+                        is_trial
+                    }
+                }
+            `, {
+                user: {
+                    id: session.user.id,
                     email: userData.email,
-                    password_hash: passwordHash,
-                    company_name: userData.companyName || 'Minha Empresa',
-                    document: userData.document || '',
-                    phone: userData.phone || '',
+                    company_name: userData.companyName,
+                    document: userData.document,
+                    phone: userData.phone,
                     plan: 'professional',
                     status: 'active',
                     valid_until: trialEnd.toISOString(),
                     is_trial: true,
                     created_at: now.toISOString()
-                }])
-                .select();
+                }
+            });
             
-            if (insertError) {
-                console.error('Erro ao inserir usuário:', insertError);
-                throw insertError;
+            if (profileError) {
+                console.error('Erro ao criar perfil:', profileError);
+                throw profileError;
             }
             
-            if (!newUser || newUser.length === 0) {
-                throw new Error('Usuário não foi criado');
+            if (!profileData?.insert_users_one) {
+                throw new Error('Perfil não foi criado');
             }
+            
+            const newUser = profileData.insert_users_one;
             
             // Criar produtos padrão para este usuário
-            await createDefaultProducts(newUser[0].id);
+            await createDefaultProducts(newUser.id);
             
             hideLoader();
             
             // Retornar dados do usuário
             return {
-                id: newUser[0].id,
-                email: newUser[0].email,
-                companyName: newUser[0].company_name,
-                document: newUser[0].document,
-                phone: newUser[0].phone,
-                createdAt: newUser[0].created_at,
-                plan: newUser[0].plan,
-                status: newUser[0].status,
-                validUntil: newUser[0].valid_until,
-                isTrial: newUser[0].is_trial !== false
+                id: newUser.id,
+                email: newUser.email,
+                companyName: newUser.company_name,
+                document: newUser.document,
+                phone: newUser.phone,
+                createdAt: newUser.created_at,
+                plan: newUser.plan,
+                status: newUser.status,
+                validUntil: newUser.valid_until,
+                isTrial: newUser.is_trial !== false
             };
             
         } catch (error) {
@@ -2028,7 +2108,9 @@
 
     async function createDefaultProducts(userId) {
         try {
-            if (!supabase || !userId) return;
+            if (!nhostClient || !userId) return;
+            
+            console.log('Criando produtos padrão para usuário:', userId);
             
             const productsWithUserId = defaultProducts.map(product => ({
                 user_id: userId,
@@ -2039,15 +2121,20 @@
                 category: product.category
             }));
             
-            const { error } = await supabase
-                .from('products')
-                .insert(productsWithUserId);
-            
-            if (error) {
-                console.error('Erro ao criar produtos padrão:', error);
-            } else {
-                console.log('Produtos padrão criados para usuário:', userId);
+            // Inserir produtos em lote
+            for (const product of productsWithUserId) {
+                await nhostClient.graphql.request(`
+                    mutation InsertProduct($product: products_insert_input!) {
+                        insert_products_one(object: $product) {
+                            id
+                        }
+                    }
+                `, {
+                    product: product
+                });
             }
+            
+            console.log('Produtos padrão criados para usuário:', userId);
         } catch (error) {
             console.error('Erro em createDefaultProducts:', error);
         }
@@ -2055,35 +2142,50 @@
 
     async function loadUserProducts(userId) {
         try {
-            if (!supabase || !userId) {
+            if (!nhostClient || !userId) {
                 console.log('Usando produtos locais');
                 return defaultProducts;
             }
 
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .eq('user_id', userId);
+            console.log('Carregando produtos do usuário:', userId);
+            
+            const { data, error } = await nhostClient.graphql.request(`
+                query GetUserProducts($userId: uuid!) {
+                    products(where: {user_id: {_eq: $userId}}) {
+                        id
+                        name
+                        price
+                        stock
+                        emoji
+                        category
+                        created_at
+                    }
+                }
+            `, {
+                userId: userId
+            });
             
             if (error) {
                 console.error('Erro ao carregar produtos:', error);
                 return defaultProducts;
             }
             
-            if (!data || data.length === 0) {
+            if (!data?.products || data.products.length === 0) {
                 await createDefaultProducts(userId);
                 return defaultProducts;
             }
             
+            console.log(`Produtos carregados: ${data.products.length} itens`);
+            
             // Transformar dados
-            return data.map((p, index) => ({
+            return data.products.map((p, index) => ({
                 id: p.id,
                 name: p.name,
                 price: parseFloat(p.price),
                 stock: p.stock,
                 emoji: p.emoji || '📦',
                 category: p.category,
-                _supabaseId: p.id
+                _nhostId: p.id
             }));
         } catch (error) {
             console.error('Erro ao carregar produtos:', error);
@@ -2091,65 +2193,84 @@
         }
     }
 
-    async function saveProductToSupabase(product, userId) {
+    async function saveProductToNhost(product, userId) {
         try {
-            if (!supabase || !userId) return null;
+            if (!nhostClient || !userId) return null;
 
-            if (product._supabaseId) {
+            if (product._nhostId) {
                 // Atualizar produto existente
-                const { data, error } = await supabase
-                    .from('products')
-                    .update({
+                const { data, error } = await nhostClient.graphql.request(`
+                    mutation UpdateProduct($id: uuid!, $updates: products_set_input!) {
+                        update_products_by_pk(pk_columns: {id: $id}, _set: $updates) {
+                            id
+                        }
+                    }
+                `, {
+                    id: product._nhostId,
+                    updates: {
                         name: product.name,
                         price: product.price,
                         stock: product.stock,
                         emoji: product.emoji,
                         category: product.category
-                    })
-                    .eq('id', product._supabaseId)
-                    .eq('user_id', userId)
-                    .select()
-                    .single();
+                    }
+                });
                 
                 if (error) throw error;
-                return data.id;
+                return data?.update_products_by_pk?.id;
             } else {
                 // Inserir novo produto
-                const { data, error } = await supabase
-                    .from('products')
-                    .insert([{
+                const { data, error } = await nhostClient.graphql.request(`
+                    mutation InsertProduct($product: products_insert_input!) {
+                        insert_products_one(object: $product) {
+                            id
+                        }
+                    }
+                `, {
+                    product: {
                         user_id: userId,
                         name: product.name,
                         price: product.price,
                         stock: product.stock,
                         emoji: product.emoji,
                         category: product.category
-                    }])
-                    .select()
-                    .single();
+                    }
+                });
                 
                 if (error) throw error;
-                return data.id;
+                return data?.insert_products_one?.id;
             }
         } catch (error) {
-            console.error('Erro ao salvar produto no Supabase:', error);
+            console.error('Erro ao salvar produto no Nhost:', error);
             throw error;
         }
     }
 
-    async function recordSaleToSupabase(saleData, userId) {
+    async function recordSaleToNhost(saleData, userId) {
         try {
-            if (!supabase || !userId) {
-                console.log('Supabase não disponível, venda registrada apenas localmente');
+            if (!nhostClient || !userId) {
+                console.log('Nhost não disponível, venda registrada apenas localmente');
                 return false;
             }
 
-            console.log('Registrando venda no Supabase:', saleData.id);
+            console.log('Registrando venda no Nhost:', saleData.id);
             
-            // 1. Registrar a venda
-            const { data: sale, error: saleError } = await supabase
-                .from('sales')
-                .insert([{
+            // 1. Registrar a venda principal
+            const { data: sale, error: saleError } = await nhostClient.graphql.request(`
+                mutation RecordSale($sale: sales_insert_input!) {
+                    insert_sales_one(object: $sale) {
+                        id
+                        sale_date
+                        subtotal
+                        discount
+                        total
+                        items_count
+                        payment_method
+                        processing_time
+                    }
+                }
+            `, {
+                sale: {
                     id: saleData.id,
                     user_id: userId,
                     sale_date: new Date().toISOString(),
@@ -2159,65 +2280,112 @@
                     items_count: saleData.itemsCount,
                     payment_method: saleData.method,
                     processing_time: saleData.processingTime
-                }])
-                .select()
-                .single();
+                }
+            });
             
             if (saleError) {
                 console.error('Erro ao registrar venda:', saleError);
                 throw saleError;
             }
             
-            console.log('Venda registrada:', sale.id);
+            console.log('Venda registrada no Nhost:', sale?.insert_sales_one?.id);
+            
+            // 2. Registrar itens da venda
+            if (saleData.items && saleData.items.length > 0) {
+                const saleItems = saleData.items.map(item => ({
+                    sale_id: saleData.id,
+                    product_id: item._nhostId || item.id,
+                    product_name: item.name,
+                    quantity: item.qty,
+                    unit_price: item.price,
+                    total_price: item.price * item.qty
+                }));
+                
+                // Inserir em lote
+                for (const item of saleItems) {
+                    await nhostClient.graphql.request(`
+                        mutation InsertSaleItem($item: sale_items_insert_input!) {
+                            insert_sale_items_one(object: $item) {
+                                id
+                            }
+                        }
+                    `, {
+                        item: item
+                    });
+                }
+                
+                console.log(`${saleItems.length} itens registrados para venda ${saleData.id}`);
+            }
+            
             return true;
         } catch (error) {
-            console.error('Erro ao registrar venda no Supabase:', error);
+            console.error('Erro ao registrar venda no Nhost:', error);
             throw error;
         }
     }
 
-    async function loadSalesHistoryFromSupabase(userId, filter = 'all') {
+    async function loadSalesHistoryFromNhost(userId, filter = 'all') {
         try {
-            if (!supabase || !userId) {
-                console.log('Supabase não disponível, usando histórico local');
+            if (!nhostClient || !userId) {
+                console.log('Nhost não disponível, usando histórico local');
                 return [];
             }
 
-            console.log('Carregando histórico para usuário:', userId, 'filtro:', filter);
+            console.log('Carregando histórico do Nhost para usuário:', userId, 'filtro:', filter);
             
-            let query = supabase
-                .from('sales')
-                .select('*')
-                .eq('user_id', userId)
-                .order('sale_date', { ascending: false });
-            
-            // Aplicar filtro de data
-            if (filter !== 'all') {
-                const now = new Date();
-                let startDate = new Date();
-                
-                if (filter === 'today') {
-                    startDate.setHours(0, 0, 0, 0);
-                } else if (filter === 'week') {
-                    startDate.setDate(now.getDate() - 7);
-                } else if (filter === 'month') {
-                    startDate.setMonth(now.getMonth() - 1);
+            // Construir query base
+            let query = `
+                query GetSalesHistory($userId: uuid!) {
+                    sales(
+                        where: {user_id: {_eq: $userId}}
+                        order_by: {sale_date: desc}
+                    ) {
+                        id
+                        sale_date
+                        subtotal
+                        discount
+                        total
+                        items_count
+                        payment_method
+                        processing_time
+                    }
                 }
-                
-                query = query.gte('sale_date', startDate.toISOString());
-            }
+            `;
             
-            const { data, error } = await query;
+            const { data, error } = await nhostClient.graphql.request(query, {
+                userId: userId
+            });
             
             if (error) {
                 console.error('Erro ao carregar histórico:', error);
                 return [];
             }
             
-            console.log('Histórico carregado:', data?.length || 0, 'vendas');
+            let sales = data?.sales || [];
+            
+            // Aplicar filtro de data localmente
+            if (filter !== 'all') {
+                const now = new Date();
+                sales = sales.filter(sale => {
+                    const saleDate = new Date(sale.sale_date);
+                    
+                    if (filter === 'today') {
+                        return saleDate.toDateString() === now.toDateString();
+                    } else if (filter === 'week') {
+                        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        return saleDate >= weekAgo;
+                    } else if (filter === 'month') {
+                        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        return saleDate >= monthAgo;
+                    }
+                    return true;
+                });
+            }
+            
+            console.log('Histórico carregado do Nhost:', sales.length, 'vendas');
             
             // Formatar os dados para compatibilidade
-            return (data || []).map(sale => ({
+            return sales.map(sale => ({
                 id: sale.id,
                 date: new Date(sale.sale_date).toLocaleString('pt-BR'),
                 timestamp: new Date(sale.sale_date).getTime(),
@@ -2229,34 +2397,38 @@
                 processingTime: parseFloat(sale.processing_time) || 0
             }));
         } catch (error) {
-            console.error('Erro ao carregar histórico:', error);
+            console.error('Erro ao carregar histórico do Nhost:', error);
             return [];
         }
     }
 
-    async function deleteProductFromSupabase(productId, userId) {
+    async function deleteProductFromNhost(productId, userId) {
         try {
-            if (!supabase || !userId) return false;
+            if (!nhostClient || !userId) return false;
 
-            console.log('Excluindo produto do Supabase:', productId);
+            console.log('Excluindo produto do Nhost:', productId);
             
-            const { error } = await supabase
-                .from('products')
-                .delete()
-                .eq('id', productId)
-                .eq('user_id', userId);
+            const { error } = await nhostClient.graphql.request(`
+                mutation DeleteProduct($id: uuid!) {
+                    delete_products_by_pk(id: $id) {
+                        id
+                    }
+                }
+            `, {
+                id: productId
+            });
             
             if (error) throw error;
             
-            console.log('Produto excluído do Supabase:', productId);
+            console.log('Produto excluído do Nhost:', productId);
             return true;
         } catch (error) {
-            console.error('Erro ao excluir produto:', error);
+            console.error('Erro ao excluir produto do Nhost:', error);
             throw error;
         }
     }
 
-    // --- FUNÇÕES DE AUTENTICAÇÃO CORRIGIDAS ---
+    // --- FUNÇÕES DE AUTENTICAÇÃO ---
 
     function showLogin() {
         document.getElementById('loginCard').style.display = 'block';
@@ -2274,17 +2446,17 @@
             return;
         }
 
-        const user = await supabaseLogin(email, password);
+        const user = await nhostLogin(email, password);
         
         if (user) {
             currentUser = user;
             isAuthenticated = true;
             
-            console.log('Usuário autenticado:', user.companyName);
+            console.log('Usuário autenticado via Nhost:', user.companyName);
             
             // Carregar dados do usuário
             products = await loadUserProducts(user.id);
-            salesHistory = await loadSalesHistoryFromSupabase(user.id);
+            salesHistory = await loadSalesHistoryFromNhost(user.id);
             
             // Mostrar aplicação
             document.getElementById('authContainer').style.display = 'none';
@@ -2317,7 +2489,7 @@
             return;
         }
         
-        const newUser = await supabaseRegister(userData);
+        const newUser = await nhostRegister(userData);
         
         if (newUser) {
             showToast('Conta criada com sucesso! 🎉', 'success');
@@ -3248,14 +3420,14 @@
             processingTime: stats.processingTime
         };
         
-        // Registrar venda no Supabase
+        // Registrar venda no Nhost
         try {
-            if (currentUser && supabase) {
-                await recordSaleToSupabase(saleRecord, currentUser.id);
+            if (currentUser && nhostClient) {
+                await recordSaleToNhost(saleRecord, currentUser.id);
                 showToast(`Venda registrada no servidor! ✅`, 'success');
             }
         } catch (error) {
-            console.error('Erro ao registrar venda no Supabase:', error);
+            console.error('Erro ao registrar venda no Nhost:', error);
             showToast('Venda registrada localmente, mas houve erro no servidor', 'warning');
         }
         
@@ -3586,14 +3758,14 @@
             category: category || 'outro'
         };
         
-        // Salvar no Supabase se houver usuário logado
-        if (currentUser && supabase) {
+        // Salvar no Nhost se houver usuário logado
+        if (currentUser && nhostClient) {
             try {
-                const supabaseId = await saveProductToSupabase(newProduct, currentUser.id);
-                newProduct._supabaseId = supabaseId;
-                console.log('Produto salvo no Supabase com ID:', supabaseId);
+                const nhostId = await saveProductToNhost(newProduct, currentUser.id);
+                newProduct._nhostId = nhostId;
+                console.log('Produto salvo no Nhost com ID:', nhostId);
             } catch (error) {
-                console.error('Erro ao salvar produto no Supabase:', error);
+                console.error('Erro ao salvar produto no Nhost:', error);
                 showToast('Produto salvo localmente, mas erro no servidor', 'warning');
             }
         }
@@ -3674,13 +3846,13 @@
             product.emoji = emojiRegex.test(emojiVal.charAt(0)) ? emojiVal.charAt(0) : product.emoji;
         }
         
-        // Salvar no Supabase se houver usuário logado
-        if (currentUser && supabase && product._supabaseId) {
+        // Salvar no Nhost se houver usuário logado
+        if (currentUser && nhostClient && product._nhostId) {
             try {
-                await saveProductToSupabase(product, currentUser.id);
-                console.log('Produto atualizado no Supabase:', product._supabaseId);
+                await saveProductToNhost(product, currentUser.id);
+                console.log('Produto atualizado no Nhost:', product._nhostId);
             } catch (error) {
-                console.error('Erro ao atualizar produto no Supabase:', error);
+                console.error('Erro ao atualizar produto no Nhost:', error);
                 showToast('Produto atualizado localmente, mas erro no servidor', 'warning');
             }
         }
@@ -3721,13 +3893,13 @@
         const oldQty = p.stock;
         p.stock = parseInt(newQty) || 0;
         
-        // Atualizar no Supabase se houver usuário logado
-        if (currentUser && supabase && p._supabaseId) {
+        // Atualizar no Nhost se houver usuário logado
+        if (currentUser && nhostClient && p._nhostId) {
             try {
-                await saveProductToSupabase(p, currentUser.id);
-                console.log('Estoque atualizado no Supabase:', p._supabaseId, 'novo estoque:', p.stock);
+                await saveProductToNhost(p, currentUser.id);
+                console.log('Estoque atualizado no Nhost:', p._nhostId, 'novo estoque:', p.stock);
             } catch (error) {
-                console.error('Erro ao atualizar estoque no Supabase:', error);
+                console.error('Erro ao atualizar estoque no Nhost:', error);
             }
         }
         
@@ -3760,13 +3932,13 @@
                 updateCartUI();
             }
             
-            // Excluir do Supabase se houver usuário logado
-            if (currentUser && supabase && product._supabaseId) {
+            // Excluir do Nhost se houver usuário logado
+            if (currentUser && nhostClient && product._nhostId) {
                 try {
-                    await deleteProductFromSupabase(product._supabaseId, currentUser.id);
-                    console.log('Produto excluído do Supabase:', product._supabaseId);
+                    await deleteProductFromNhost(product._nhostId, currentUser.id);
+                    console.log('Produto excluído do Nhost:', product._nhostId);
                 } catch (error) {
-                    console.error('Erro ao excluir produto do Supabase:', error);
+                    console.error('Erro ao excluir produto do Nhost:', error);
                     showToast('Produto excluído localmente, mas erro no servidor', 'warning');
                 }
             }
@@ -3861,9 +4033,9 @@
 
     // --- DASHBOARD ANALÍTICO ---
     function updateDashboard() {
-        // Carregar histórico atualizado do Supabase
+        // Carregar histórico atualizado do Nhost
         if (currentUser) {
-            loadSalesHistoryFromSupabase(currentUser.id, 'all').then(data => {
+            loadSalesHistoryFromNhost(currentUser.id, 'all').then(data => {
                 salesHistory = data;
                 renderDashboardData();
             });
@@ -4270,7 +4442,7 @@
 2. Assinatura: R$ 29,90/mês após o período de teste
 3. Pagamento: Cobrança automática mensal
 4. Cancelamento: A qualquer momento
-5. Dados: Seus dados são armazenados localmente e no Supabase
+5. Dados: Seus dados são armazenados localmente e no Nhost
 
 Para cancelar, entre em contato com nosso suporte.`);
     };
