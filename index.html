@@ -1215,16 +1215,13 @@
 </head>
 <body>
 
-<!-- Efeito de partículas mágicas -->
 <div id="particles-container"></div>
 
-<!-- Loader -->
 <div class="loader" id="loader">
     <div class="loader-spinner"></div>
     <p>Carregando magia... ✨</p>
 </div>
 
-<!-- Tela de Login -->
 <div class="auth-container" id="authContainer">
     <div class="auth-card" id="loginCard">
         <div class="auth-header">
@@ -1328,7 +1325,6 @@
     </div>
 </div>
 
-<!-- Aplicação Principal -->
 <div class="app-container" id="appContainer">
     <nav class="sidebar">
         <button class="nav-btn active" onclick="switchTab('pdv')" title="Vendas">
@@ -1376,7 +1372,6 @@
                 </div>
             </div>
 
-            <!-- Sugestões de produtos -->
             <div class="suggestions-box" id="suggestionsBox"></div>
 
             <div class="live-stats">
@@ -1396,8 +1391,7 @@
 
             <div class="pdv-grid">
                 <div class="product-list" id="productsGrid">
-                    <!-- Produtos serão renderizados aqui -->
-                </div>
+                    </div>
 
                 <div class="cart-panel">
                     <div class="cart-header">
@@ -1476,8 +1470,7 @@
                         </tr>
                     </thead>
                     <tbody id="stockTableBody">
-                        <!-- Produtos do estoque serão renderizados aqui -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </section>
@@ -1559,8 +1552,7 @@
                         </tr>
                     </thead>
                     <tbody id="salesHistoryBody">
-                        <!-- Histórico de vendas será renderizado aqui -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </section>
@@ -1568,7 +1560,6 @@
     </main>
 </div>
 
-<!-- Badge de Estoque Baixo -->
 <div class="low-stock-badge" id="lowStockBadge" onclick="switchTab('stock')" style="display: none;">
     <i class="fas fa-exclamation-triangle"></i>
     <div>
@@ -1576,12 +1567,10 @@
     </div>
 </div>
 
-<!-- Botão de Ação Flutuante -->
 <button class="floating-action-btn" id="floatingActionBtn" onclick="quickSale()">
     <i class="fas fa-bolt"></i>
 </button>
 
-<!-- Modal de Pagamento -->
 <div class="modal-overlay" id="paymentModal">
     <div class="modal-content">
         <h2>Pagamento 💸</h2>
@@ -1632,7 +1621,6 @@
     </div>
 </div>
 
-<!-- Modal de Recibo -->
 <div class="modal-overlay" id="receiptModal">
     <div class="modal-content">
         <h2>Venda Finalizada! 🎉</h2>
@@ -1665,7 +1653,6 @@
     </div>
 </div>
 
-<!-- Modal de Produto Rápido -->
 <div class="modal-overlay" id="quickProductModal">
     <div class="modal-content">
         <h2>Adicionar Produto Rápido ⚡</h2>
@@ -1685,7 +1672,6 @@
     </div>
 </div>
 
-<!-- Modal da Conta -->
 <div class="modal-overlay" id="accountModal">
     <div class="modal-content">
         <h2>Minha Conta 👤</h2>
@@ -1742,18 +1728,16 @@
     </div>
 </div>
 
-<!-- Notificações Toast -->
 <div id="toast" class="toast">
     <i class="fas fa-check-circle toast-icon"></i>
     <span class="toast-message">Operação realizada com sucesso!</span>
 </div>
 
-<!-- Incluir Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
     // ============================================
-    // SISTEMA PDV MÁGICO PRO - COM SUPABASE (VERSÃO CORRIGIDA E COMPLETA)
+    // SISTEMA PDV MÁGICO PRO - COM SUPABASE (VERSÃO CORRIGIDA)
     // ============================================
 
     // --- CONFIGURAÇÃO DO SUPABASE ---
@@ -1771,7 +1755,7 @@
 
     // --- CONFIGURAÇÃO INICIAL ---
     const APP_NAME = "PDV Mágico Pro";
-    const APP_VERSION = "2.3.1"; // Versão com correções de login
+    const APP_VERSION = "2.3.2"; // Versão com login corrigido
     const APP_AUTHOR = "Sistema Inteligente";
     const MONTHLY_PRICE = 29.90;
     const TRIAL_DAYS = 7;
@@ -1869,70 +1853,46 @@
 
     // --- FUNÇÕES SUPABASE CORRIGIDAS ---
 
-    // Função de hash simples para demonstração
-    function simpleHash(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        return Math.abs(hash).toString(16);
-    }
-
     async function supabaseLogin(email, password) {
         showLoader();
-        
         try {
-            if (!supabase) {
-                throw new Error('Supabase não inicializado');
-            }
+            if (!supabase) throw new Error('Supabase não inicializado');
 
             console.log('Tentando login para:', email);
             
-            // Calcular hash da senha
-            const passwordHash = simpleHash(password);
-            
-            // Buscar usuário
-            const { data, error } = await supabase
+            // Usar autenticação nativa do Supabase
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) throw error;
+            if (!data.user) throw new Error('Usuário não encontrado');
+
+            // Buscar dados extras do perfil na tabela 'users'
+            const { data: profile, error: profileError } = await supabase
                 .from('users')
                 .select('*')
-                .eq('email', email)
-                .eq('password_hash', passwordHash);
-            
-            if (error) {
-                console.error('Erro no login Supabase:', error);
-                hideLoader();
-                showToast('Erro ao conectar ao servidor', 'error');
-                return null;
-            }
-            
-            if (!data || data.length === 0) {
-                hideLoader();
-                showToast('Email ou senha incorretos', 'error');
-                return null;
-            }
-            
-            const user = data[0];
-            console.log('Usuário encontrado:', user.id);
-            
-            // Converter para formato interno
-            const userData = {
-                id: user.id,
-                email: user.email,
-                companyName: user.company_name || 'Minha Empresa',
-                document: user.document || '',
-                phone: user.phone || '',
-                createdAt: user.created_at || new Date().toISOString(),
-                plan: user.plan || 'professional',
-                status: user.status || 'active',
-                validUntil: user.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                isTrial: user.is_trial !== false
+                .eq('id', data.user.id)
+                .single();
+
+            // Se não houver perfil, cria um básico (fallback)
+            let userData = {
+                id: data.user.id,
+                email: data.user.email,
+                companyName: profile?.company_name || 'Minha Empresa',
+                document: profile?.document || '',
+                phone: profile?.phone || '',
+                createdAt: profile?.created_at || new Date().toISOString(),
+                plan: profile?.plan || 'professional',
+                status: profile?.status || 'active',
+                validUntil: profile?.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                isTrial: profile?.is_trial !== false
             };
-            
+
             hideLoader();
             return userData;
-            
+
         } catch (error) {
             console.error('Erro no login:', error);
             hideLoader();
@@ -1943,42 +1903,29 @@
 
     async function supabaseRegister(userData) {
         showLoader();
-        
         try {
-            if (!supabase) {
-                throw new Error('Supabase não inicializado');
-            }
+            if (!supabase) throw new Error('Supabase não inicializado');
 
-            // Verificar se email já existe
-            const { data: existingUsers, error: checkError } = await supabase
-                .from('users')
-                .select('id')
-                .eq('email', userData.email);
-            
-            if (checkError) {
-                console.error('Erro ao verificar email:', checkError);
-            }
-            
-            if (existingUsers && existingUsers.length > 0) {
-                hideLoader();
-                showToast('Este email já está cadastrado', 'error');
-                return null;
-            }
-            
+            // 1. Criar usuário no Auth do Supabase
+            const { data, error } = await supabase.auth.signUp({
+                email: userData.email,
+                password: userData.password,
+            });
+
+            if (error) throw error;
+            if (!data.user) throw new Error('Erro ao criar usuário');
+
             // Calcular datas
             const now = new Date();
             const trialEnd = new Date(now);
             trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-            
-            // Calcular hash da senha
-            const passwordHash = simpleHash(userData.password);
-            
-            // Inserir usuário
-            const { data: newUser, error: insertError } = await supabase
+
+            // 2. Inserir metadados na tabela 'users' pública
+            const { error: insertError } = await supabase
                 .from('users')
                 .insert([{
+                    id: data.user.id, // Vincula com o ID do Auth
                     email: userData.email,
-                    password_hash: passwordHash,
                     company_name: userData.companyName || 'Minha Empresa',
                     document: userData.document || '',
                     phone: userData.phone || '',
@@ -1987,37 +1934,30 @@
                     valid_until: trialEnd.toISOString(),
                     is_trial: true,
                     created_at: now.toISOString()
-                }])
-                .select();
-            
+                }]);
+
             if (insertError) {
-                console.error('Erro ao inserir usuário:', insertError);
-                throw insertError;
+                console.error('Erro ao salvar perfil:', insertError);
+                // Não bloqueia o registro, mas avisa
             }
-            
-            if (!newUser || newUser.length === 0) {
-                throw new Error('Usuário não foi criado');
-            }
-            
+
             // Criar produtos padrão para este usuário
-            await createDefaultProducts(newUser[0].id);
-            
+            await createDefaultProducts(data.user.id);
+
             hideLoader();
-            
-            // Retornar dados do usuário
             return {
-                id: newUser[0].id,
-                email: newUser[0].email,
-                companyName: newUser[0].company_name,
-                document: newUser[0].document,
-                phone: newUser[0].phone,
-                createdAt: newUser[0].created_at,
-                plan: newUser[0].plan,
-                status: newUser[0].status,
-                validUntil: newUser[0].valid_until,
-                isTrial: newUser[0].is_trial !== false
+                id: data.user.id,
+                email: userData.email,
+                companyName: userData.companyName,
+                document: userData.document,
+                phone: userData.phone,
+                createdAt: now.toISOString(),
+                plan: 'professional',
+                status: 'active',
+                validUntil: trialEnd.toISOString(),
+                isTrial: true
             };
-            
+
         } catch (error) {
             console.error('Erro no registro:', error);
             hideLoader();
@@ -2067,16 +2007,18 @@
             
             if (error) {
                 console.error('Erro ao carregar produtos:', error);
-                return defaultProducts;
+                // Se erro (ex: tabela não existe), retorna default
+                return defaultProducts; 
             }
             
             if (!data || data.length === 0) {
-                await createDefaultProducts(userId);
+                // Se tabela existe mas vazia, tenta criar defaults
+                // await createDefaultProducts(userId); // Opcional: recriar se vazio
                 return defaultProducts;
             }
             
             // Transformar dados
-            return data.map((p, index) => ({
+            return data.map((p) => ({
                 id: p.id,
                 name: p.name,
                 price: parseFloat(p.price),
@@ -2133,7 +2075,8 @@
             }
         } catch (error) {
             console.error('Erro ao salvar produto no Supabase:', error);
-            throw error;
+            // Não jogar erro para não travar a UI, apenas logar
+            return null;
         }
     }
 
@@ -2146,7 +2089,6 @@
 
             console.log('Registrando venda no Supabase:', saleData.id);
             
-            // 1. Registrar a venda
             const { data: sale, error: saleError } = await supabase
                 .from('sales')
                 .insert([{
@@ -2163,27 +2105,21 @@
                 .select()
                 .single();
             
-            if (saleError) {
-                console.error('Erro ao registrar venda:', saleError);
-                throw saleError;
-            }
+            if (saleError) throw saleError;
             
             console.log('Venda registrada:', sale.id);
             return true;
         } catch (error) {
             console.error('Erro ao registrar venda no Supabase:', error);
-            throw error;
+            return false;
         }
     }
 
     async function loadSalesHistoryFromSupabase(userId, filter = 'all') {
         try {
             if (!supabase || !userId) {
-                console.log('Supabase não disponível, usando histórico local');
                 return [];
             }
-
-            console.log('Carregando histórico para usuário:', userId, 'filtro:', filter);
             
             let query = supabase
                 .from('sales')
@@ -2214,8 +2150,6 @@
                 return [];
             }
             
-            console.log('Histórico carregado:', data?.length || 0, 'vendas');
-            
             // Formatar os dados para compatibilidade
             return (data || []).map(sale => ({
                 id: sale.id,
@@ -2237,8 +2171,6 @@
     async function deleteProductFromSupabase(productId, userId) {
         try {
             if (!supabase || !userId) return false;
-
-            console.log('Excluindo produto do Supabase:', productId);
             
             const { error } = await supabase
                 .from('products')
@@ -2247,16 +2179,14 @@
                 .eq('user_id', userId);
             
             if (error) throw error;
-            
-            console.log('Produto excluído do Supabase:', productId);
             return true;
         } catch (error) {
             console.error('Erro ao excluir produto:', error);
-            throw error;
+            return false;
         }
     }
 
-    // --- FUNÇÕES DE AUTENTICAÇÃO CORRIGIDAS ---
+    // --- FUNÇÕES DE INTERFACE DO USUÁRIO ---
 
     function showLogin() {
         document.getElementById('loginCard').style.display = 'block';
@@ -2390,12 +2320,15 @@
         showToast('Redirecionando para página de pagamento...', 'info');
         setTimeout(() => {
             document.getElementById('accountModal').style.display = 'none';
-            showToast('Página de pagamento em desenvolvimento. Em produção, isso redirecionaria para o gateway.', 'warning');
+            showToast('Página de pagamento em desenvolvimento.', 'warning');
         }, 1000);
     }
 
     function logout() {
         if (confirm('Tem certeza que deseja sair do sistema?')) {
+            // Logout do Supabase
+            if (supabase) supabase.auth.signOut();
+
             // Resetar estado
             currentUser = null;
             isAuthenticated = false;
@@ -2417,24 +2350,37 @@
     }
 
     // --- INICIALIZAÇÃO DO SISTEMA ---
-    function init() {
+    async function init() {
         console.log(`${APP_NAME} v${APP_VERSION} inicializando...`);
         
         // Verificar se há usuário salvo
         const savedUser = localStorage.getItem('pdv_current_user');
         if (savedUser) {
             try {
-                currentUser = JSON.parse(savedUser);
-                isAuthenticated = true;
+                // Tenta validar a sessão com Supabase
+                const { data } = await supabase.auth.getSession();
                 
-                // Carregar aplicação direto
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'grid';
-                initApp();
-                showToast(`Bem-vindo de volta, ${currentUser.companyName}!`, 'success');
-                return;
+                if (data.session) {
+                    currentUser = JSON.parse(savedUser);
+                    isAuthenticated = true;
+                    
+                    // Carregar aplicação direto
+                    document.getElementById('authContainer').style.display = 'none';
+                    document.getElementById('appContainer').style.display = 'grid';
+                    
+                    // Carregar dados
+                    products = await loadUserProducts(currentUser.id);
+                    salesHistory = await loadSalesHistoryFromSupabase(currentUser.id);
+                    
+                    initApp();
+                    showToast(`Bem-vindo de volta, ${currentUser.companyName}!`, 'success');
+                    return;
+                } else {
+                    console.log('Sessão expirada');
+                    localStorage.removeItem('pdv_current_user');
+                }
             } catch (e) {
-                console.error('Erro ao carregar usuário salvo:', e);
+                console.error('Erro ao verificar sessão:', e);
                 localStorage.removeItem('pdv_current_user');
             }
         }
@@ -2516,7 +2462,7 @@
             }, 800);
         }, 500);
         
-        // Configurar auto-save
+        // Configurar auto-save local (backup)
         setInterval(saveData, 30000);
         
         // Atualizar estatísticas em tempo real
@@ -2524,21 +2470,6 @@
         
         // Verificar estoque baixo periodicamente
         setInterval(checkLowStock, 10000);
-        
-        // Verificar status da assinatura periodicamente
-        setInterval(checkSubscription, 60000);
-    }
-
-    function checkSubscription() {
-        if (!currentUser) return;
-        
-        const now = new Date();
-        const validUntil = new Date(currentUser.validUntil);
-        
-        if (now > validUntil) {
-            showToast('Sua assinatura expirou. Renove para continuar usando o sistema.', 'error', 10000);
-            updateSubscriptionStatus();
-        }
     }
 
     // --- ANIMAÇÕES E EFEITOS VISUAIS ---
@@ -2642,14 +2573,9 @@
     async function saveData() {
         try {
             if (!currentUser) return;
-            
-            // Salvar usuário atual para login automático
             localStorage.setItem('pdv_current_user', JSON.stringify(currentUser));
-            
-            // Log silencioso
-            console.log('Dados locais salvos');
         } catch (e) {
-            console.error('Erro ao salvar dados:', e);
+            console.error('Erro ao salvar dados locais:', e);
         }
     }
 
