@@ -44,214 +44,6 @@
             overflow-x: hidden;
         }
 
-        /* --- TELA DE LOGIN/CADASTRO --- */
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: var(--border);
-            padding: 40px;
-            width: 100%;
-            max-width: 480px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-logo {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-
-        .auth-title {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        .auth-subtitle {
-            color: var(--text-light);
-            margin-bottom: 25px;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-label {
-            font-weight: 700;
-            color: var(--text);
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            padding: 16px 20px;
-            border-radius: 16px;
-            border: 2px solid #dfe6e9;
-            font-size: 1rem;
-            outline: none;
-            background: rgba(255,255,255,0.9);
-            transition: var(--transition);
-        }
-
-        .form-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .auth-btn {
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 18px;
-            font-weight: 900;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .auth-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4);
-        }
-
-        .auth-btn.secondary {
-            background: #f8f9fa;
-            color: var(--text);
-            border: 2px solid #dfe6e9;
-        }
-
-        .auth-btn.secondary:hover {
-            background: #e9ecef;
-            border-color: var(--primary);
-        }
-
-        .auth-switch {
-            text-align: center;
-            margin-top: 25px;
-            color: var(--text-light);
-        }
-
-        .auth-switch a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .auth-switch a:hover {
-            text-decoration: underline;
-        }
-
-        .plan-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 20px;
-            border: 3px solid var(--primary);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .plan-badge {
-            position: absolute;
-            top: 15px;
-            right: -30px;
-            background: var(--success);
-            color: white;
-            padding: 5px 30px;
-            transform: rotate(45deg);
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .plan-price {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--primary);
-            margin: 10px 0;
-        }
-
-        .plan-period {
-            font-size: 1rem;
-            color: var(--text-light);
-        }
-
-        .plan-features {
-            list-style: none;
-            margin: 20px 0;
-            text-align: left;
-        }
-
-        .plan-features li {
-            padding: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .plan-features li i {
-            color: var(--success);
-        }
-
-        .terms-checkbox {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin: 15px 0;
-            font-size: 0.9rem;
-        }
-
-        .terms-checkbox input {
-            margin-top: 3px;
-        }
-
-        .terms-checkbox a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .terms-checkbox a:hover {
-            text-decoration: underline;
-        }
-
         /* Efeito de partículas mágicas */
         .magic-particle {
             position: absolute;
@@ -266,7 +58,7 @@
 
         /* --- Layout Principal --- */
         .app-container {
-            display: none;
+            display: grid;
             grid-template-columns: 80px 1fr;
             width: 100%;
             height: calc(100vh - 40px);
@@ -526,7 +318,7 @@
             font-weight: 800; 
             font-size: 1rem; 
             margin-bottom: 8px; 
-            color: var(--text); 
+            color: var(--text);
         }
         
         .product-price { 
@@ -1040,14 +832,6 @@
                 margin-bottom: 0;
                 margin-right: 10px;
             }
-            
-            .auth-card {
-                padding: 30px 20px;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 768px) {
@@ -1065,10 +849,6 @@
             
             .scan-input {
                 min-width: 100%;
-            }
-            
-            body {
-                padding: 10px;
             }
         }
 
@@ -1224,112 +1004,7 @@
     <p>Carregando magia... ✨</p>
 </div>
 
-<!-- Tela de Login -->
-<div class="auth-container" id="authContainer">
-    <div class="auth-card" id="loginCard">
-        <div class="auth-header">
-            <div class="auth-logo">✨</div>
-            <h1 class="auth-title">PDV Mágico Pro</h1>
-            <p class="auth-subtitle">Sistema Inteligente de Vendas</p>
-        </div>
-        
-        <form class="auth-form" id="loginForm">
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-input" id="loginEmail" placeholder="seu@email.com" required>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Senha</label>
-                <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required>
-            </div>
-            
-            <button type="submit" class="auth-btn" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
-            </button>
-            
-            <div class="auth-switch">
-                Não tem uma conta? <a onclick="showRegister()">Cadastre-se gratuitamente</a>
-            </div>
-        </form>
-    </div>
-    
-    <div class="auth-card" id="registerCard" style="display: none;">
-        <div class="auth-header">
-            <div class="auth-logo">🚀</div>
-            <h1 class="auth-title">Criar Conta</h1>
-            <p class="auth-subtitle">7 dias grátis, depois R$ 29,90/mês</p>
-        </div>
-        
-        <div class="plan-card">
-            <div class="plan-badge">7 DIAS GRÁTIS</div>
-            <h3>Plano Profissional</h3>
-            <div class="plan-price">R$ 29,90</div>
-            <div class="plan-period">por mês</div>
-            <ul class="plan-features">
-                <li><i class="fas fa-check"></i> PDV Completo</li>
-                <li><i class="fas fa-check"></i> Gestão de Estoque</li>
-                <li><i class="fas fa-check"></i> Dashboard Avançado</li>
-                <li><i class="fas fa-check"></i> Suporte 24/7</li>
-                <li><i class="fas fa-check"></i> Atualizações Gratuitas</li>
-            </ul>
-        </div>
-        
-        <form class="auth-form" id="registerForm">
-            <div class="form-group">
-                <label class="form-label">Nome da Empresa</label>
-                <input type="text" class="form-input" id="regCompany" placeholder="Sua Empresa LTDA" required>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">CNPJ/CPF</label>
-                    <input type="text" class="form-input" id="regDocument" placeholder="00.000.000/0000-00" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Telefone</label>
-                    <input type="tel" class="form-input" id="regPhone" placeholder="(11) 99999-9999" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-input" id="regEmail" placeholder="seu@email.com" required>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Senha</label>
-                    <input type="password" class="form-input" id="regPassword" placeholder="••••••••" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Confirmar Senha</label>
-                    <input type="password" class="form-input" id="regConfirmPassword" placeholder="••••••••" required>
-                </div>
-            </div>
-            
-            <div class="terms-checkbox">
-                <input type="checkbox" id="regTerms" required>
-                <label for="regTerms">
-                    Concordo com os <a href="#" onclick="showTerms()">Termos de Uso</a> e autorizo a cobrança mensal de R$ 29,90 após o período de teste.
-                </label>
-            </div>
-            
-            <button type="submit" class="auth-btn" id="registerBtn">
-                <i class="fas fa-rocket"></i> Começar Período Grátis
-            </button>
-            
-            <div class="auth-switch">
-                Já tem uma conta? <a onclick="showLogin()">Faça login</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Aplicação Principal -->
-<div class="app-container" id="appContainer">
+<div class="app-container">
     <nav class="sidebar">
         <button class="nav-btn active" onclick="switchTab('pdv')" title="Vendas">
             🛒
@@ -1342,9 +1017,6 @@
         <button class="nav-btn" onclick="switchTab('dashboard')" title="Dashboard">
             📊
         </button>
-        <button class="nav-btn" onclick="openAccountModal()" title="Minha Conta">
-            👤
-        </button>
         <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Modo Escuro">
             🌙
         </button>
@@ -1353,13 +1025,7 @@
     <main class="content-area">
         
         <section id="pdv" class="section active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h2><i class="fas fa-cash-register"></i> Caixa Inteligente ✨</h2>
-                <div class="stat-badge" id="subscriptionStatus" style="background: var(--success); color: white;">
-                    <i class="fas fa-crown"></i>
-                    <span>Plano Ativo</span>
-                </div>
-            </div>
+            <h2><i class="fas fa-cash-register"></i> Caixa Inteligente ✨</h2>
             
             <div class="pdv-header">
                 <input type="text" id="barcodeInput" class="scan-input" placeholder="🔍 Escaneie o código, digite o nome ou use voz... (F2 para voz)" autofocus>
@@ -1685,103 +1351,21 @@
     </div>
 </div>
 
-<!-- Modal da Conta -->
-<div class="modal-overlay" id="accountModal">
-    <div class="modal-content">
-        <h2>Minha Conta 👤</h2>
-        
-        <div style="text-align: center; margin-bottom: 25px;">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 2rem;">
-                👑
-            </div>
-            <h3 id="accountCompanyName">Nome da Empresa</h3>
-            <p style="color: var(--text-light);" id="accountEmail">email@empresa.com</p>
-        </div>
-        
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 16px; margin-bottom: 25px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <span>Plano Atual:</span>
-                <span style="font-weight: 700; color: var(--primary);" id="accountPlanStatus">PROFISSIONAL</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <span>Válido até:</span>
-                <span style="font-weight: 700;" id="accountValidUntil">00/00/0000</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-                <span>Próxima cobrança:</span>
-                <span style="font-weight: 700;" id="accountNextBilling">R$ 29,90 em 00/00/0000</span>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <h3 style="font-size: 1.2rem; margin-bottom: 15px;">Informações da Empresa</h3>
-            <div style="display: grid; gap: 10px;">
-                <div style="display: flex; justify-content: space-between;">
-                    <span>CNPJ/CPF:</span>
-                    <span style="font-weight: 700;" id="accountDocument">00.000.000/0000-00</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Telefone:</span>
-                    <span style="font-weight: 700;" id="accountPhone">(11) 99999-9999</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Data de Cadastro:</span>
-                    <span style="font-weight: 700;" id="accountCreatedAt">00/00/0000</span>
-                </div>
-            </div>
-        </div>
-        
-        <div style="display: grid; gap: 10px;">
-            <button class="btn-checkout" onclick="upgradePlan()">
-                <i class="fas fa-crown"></i> 💎 Atualizar para Plano Premium
-            </button>
-            <button class="btn-checkout" style="background: #ff7675;" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Sair do Sistema
-            </button>
-        </div>
-    </div>
-</div>
-
 <!-- Notificações Toast -->
 <div id="toast" class="toast">
     <i class="fas fa-check-circle toast-icon"></i>
     <span class="toast-message">Operação realizada com sucesso!</span>
 </div>
 
-<!-- Incluir Nhost SDK -->
-<script src="https://unpkg.com/@nhost/nhost-js@latest/dist/nhost.js"></script>
-
 <script>
     // ============================================
-    // SISTEMA PDV MÁGICO PRO - COM NHOST
+    // SISTEMA PDV MÁGICO PRO - VERSÃO AVANÇADA
     // ============================================
-
-    // --- CONFIGURAÇÃO DO NHOST ---
-    const NHOST_SUBDOMAIN = 'zywyxusjrpylxofrtshp';
-    const NHOST_REGION = 'sa-east-1';
-    
-    // Configurar cliente Nhost
-    let nhostClient;
-    try {
-        nhostClient = new NhostClient({
-            subdomain: NHOST_SUBDOMAIN,
-            region: NHOST_REGION
-        });
-        console.log('Nhost inicializado com sucesso');
-    } catch (error) {
-        console.error('Erro ao inicializar Nhost:', error);
-    }
 
     // --- CONFIGURAÇÃO INICIAL ---
     const APP_NAME = "PDV Mágico Pro";
-    const APP_VERSION = "3.0.0"; // Versão com Nhost completo
+    const APP_VERSION = "2.0.0";
     const APP_AUTHOR = "Sistema Inteligente";
-    const MONTHLY_PRICE = 29.90;
-    const TRIAL_DAYS = 7;
-    
-    // --- SISTEMA DE AUTENTICAÇÃO ---
-    let currentUser = null;
-    let isAuthenticated = false;
     
     // --- BANCO DE EMOJIS AVANÇADO ---
     const emojiDB = [
@@ -1853,8 +1437,8 @@
     ];
 
     // Estado da aplicação
-    let products = [...defaultProducts];
-    let salesHistory = [];
+    let products = JSON.parse(localStorage.getItem('products')) || defaultProducts;
+    let salesHistory = JSON.parse(localStorage.getItem('salesHistory')) || [];
     let cart = [];
     let currentSaleData = null;
     let currentDiscount = 0;
@@ -1870,876 +1454,38 @@
         processingTime: 0
     };
 
-    // --- FUNÇÕES NHOST ---
-
-    async function nhostLogin(email, password) {
-        showLoader();
-        
-        try {
-            if (!nhostClient) {
-                throw new Error('Nhost não inicializado');
-            }
-
-            console.log('Tentando login no Nhost para:', email);
-            
-            // Tentar autenticação no Nhost
-            const { session, error } = await nhostClient.auth.signIn({
-                email,
-                password
-            });
-            
-            if (error) {
-                console.error('Erro no login Nhost:', error);
-                hideLoader();
-                
-                // Se for erro de usuário não encontrado, tentar cadastrar
-                if (error.message.includes('Invalid login credentials')) {
-                    showToast('Email ou senha incorretos', 'error');
-                } else {
-                    showToast('Erro ao conectar ao servidor: ' + error.message, 'error');
-                }
-                return null;
-            }
-            
-            if (!session) {
-                hideLoader();
-                showToast('Erro na autenticação', 'error');
-                return null;
-            }
-            
-            // Obter informações do usuário
-            const user = session.user;
-            console.log('Usuário autenticado no Nhost:', user.id);
-            
-            // Buscar dados adicionais do usuário da tabela 'users'
-            const userData = await getUserDataFromDatabase(user.id);
-            
-            // Se não existir na tabela users, criar um registro
-            if (!userData) {
-                await createUserInDatabase(user);
-                // Buscar novamente após criar
-                const newUserData = await getUserDataFromDatabase(user.id);
-                return formatUserData(user, newUserData);
-            }
-            
-            hideLoader();
-            return formatUserData(user, userData);
-            
-        } catch (error) {
-            console.error('Erro no login:', error);
-            hideLoader();
-            showToast('Erro ao fazer login: ' + error.message, 'error');
-            return null;
-        }
-    }
-
-    function formatUserData(authUser, dbUser) {
-        const trialEnd = new Date();
-        trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-        
-        return {
-            id: authUser.id,
-            email: authUser.email,
-            companyName: dbUser?.company_name || authUser.displayName || 'Minha Empresa',
-            document: dbUser?.document || '',
-            phone: dbUser?.phone || '',
-            createdAt: dbUser?.created_at || authUser.createdAt || new Date().toISOString(),
-            plan: dbUser?.plan || 'professional',
-            status: dbUser?.status || 'active',
-            validUntil: dbUser?.valid_until || trialEnd.toISOString(),
-            isTrial: dbUser?.is_trial !== false
-        };
-    }
-
-    async function getUserDataFromDatabase(userId) {
-        try {
-            if (!nhostClient) return null;
-
-            const { data, error } = await nhostClient.graphql.request(`
-                query GetUserData($userId: uuid!) {
-                    users_by_pk(id: $userId) {
-                        id
-                        document
-                        phone
-                        company_name
-                        plan
-                        status
-                        valid_until
-                        is_trial
-                        created_at
-                    }
-                }
-            `, {
-                userId
-            });
-
-            if (error) {
-                console.error('Erro ao buscar dados do usuário:', error);
-                return null;
-            }
-
-            return data?.users_by_pk;
-        } catch (error) {
-            console.error('Erro em getUserDataFromDatabase:', error);
-            return null;
-        }
-    }
-
-    async function createUserInDatabase(nhostUser) {
-        try {
-            if (!nhostClient) return null;
-
-            const trialEnd = new Date();
-            trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-
-            const { data, error } = await nhostClient.graphql.request(`
-                mutation CreateUser($userId: uuid!, $email: String!, $companyName: String!) {
-                    insert_users_one(object: {
-                        id: $userId,
-                        email: $email,
-                        company_name: $companyName,
-                        document: "",
-                        phone: "",
-                        plan: "professional",
-                        status: "active",
-                        valid_until: "${trialEnd.toISOString()}",
-                        is_trial: true
-                    }) {
-                        id
-                    }
-                }
-            `, {
-                userId: nhostUser.id,
-                email: nhostUser.email,
-                companyName: nhostUser.displayName || 'Minha Empresa'
-            });
-
-            if (error) {
-                console.error('Erro ao criar usuário no banco:', error);
-                return null;
-            }
-
-            return data?.insert_users_one;
-        } catch (error) {
-            console.error('Erro em createUserInDatabase:', error);
-            return null;
-        }
-    }
-
-    async function nhostRegister(userData) {
-        showLoader();
-        
-        try {
-            if (!nhostClient) {
-                throw new Error('Nhost não inicializado');
-            }
-
-            // Registrar no Nhost Auth
-            const { session, error: signUpError } = await nhostClient.auth.signUp({
-                email: userData.email,
-                password: userData.password,
-                options: {
-                    displayName: userData.companyName || 'Minha Empresa',
-                    metadata: {
-                        company_name: userData.companyName,
-                        document: userData.document,
-                        phone: userData.phone
-                    }
-                }
-            });
-            
-            if (signUpError) {
-                console.error('Erro no registro Nhost:', signUpError);
-                hideLoader();
-                
-                if (signUpError.message.includes('already registered')) {
-                    showToast('Este email já está cadastrado', 'error');
-                } else {
-                    showToast('Erro ao criar conta: ' + signUpError.message, 'error');
-                }
-                return null;
-            }
-            
-            if (!session) {
-                hideLoader();
-                showToast('Erro ao criar conta', 'error');
-                return null;
-            }
-            
-            const user = session.user;
-            console.log('Usuário registrado no Nhost:', user.id);
-            
-            // Criar registro na tabela users
-            await createUserInDatabaseWithDetails(user, userData);
-            
-            // Criar produtos padrão para este usuário
-            await createDefaultProducts(user.id);
-            
-            hideLoader();
-            
-            // Retornar dados do usuário
-            return {
-                id: user.id,
-                email: user.email,
-                companyName: userData.companyName || 'Minha Empresa',
-                document: userData.document || '',
-                phone: userData.phone || '',
-                createdAt: new Date().toISOString(),
-                plan: 'professional',
-                status: 'active',
-                validUntil: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
-                isTrial: true
-            };
-            
-        } catch (error) {
-            console.error('Erro no registro:', error);
-            hideLoader();
-            showToast('Erro ao criar conta: ' + error.message, 'error');
-            return null;
-        }
-    }
-
-    async function createUserInDatabaseWithDetails(nhostUser, userData) {
-        try {
-            if (!nhostClient) return null;
-
-            const trialEnd = new Date();
-            trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-
-            const { data, error } = await nhostClient.graphql.request(`
-                mutation CreateUserWithDetails(
-                    $userId: uuid!, 
-                    $email: String!, 
-                    $companyName: String!,
-                    $document: String!,
-                    $phone: String!
-                ) {
-                    insert_users_one(object: {
-                        id: $userId,
-                        email: $email,
-                        company_name: $companyName,
-                        document: $document,
-                        phone: $phone,
-                        plan: "professional",
-                        status: "active",
-                        valid_until: "${trialEnd.toISOString()}",
-                        is_trial: true
-                    }) {
-                        id
-                    }
-                }
-            `, {
-                userId: nhostUser.id,
-                email: nhostUser.email,
-                companyName: userData.companyName || 'Minha Empresa',
-                document: userData.document || '',
-                phone: userData.phone || ''
-            });
-
-            if (error) {
-                console.error('Erro ao criar usuário com detalhes:', error);
-                return null;
-            }
-
-            return data?.insert_users_one;
-        } catch (error) {
-            console.error('Erro em createUserInDatabaseWithDetails:', error);
-            return null;
-        }
-    }
-
-    async function createDefaultProducts(userId) {
-        try {
-            if (!nhostClient || !userId) return;
-            
-            // Preparar produtos para inserção
-            const productsToInsert = defaultProducts.map(product => ({
-                user_id: userId,
-                name: product.name,
-                price: product.price,
-                stock: product.stock,
-                emoji: product.emoji,
-                category: product.category
-            }));
-            
-            // Inserir produtos em lote
-            for (const product of productsToInsert) {
-                const { error } = await nhostClient.graphql.request(`
-                    mutation InsertProduct(
-                        $userId: uuid!,
-                        $name: String!,
-                        $price: numeric!,
-                        $stock: Int!,
-                        $emoji: String!,
-                        $category: String!
-                    ) {
-                        insert_products_one(object: {
-                            user_id: $userId,
-                            name: $name,
-                            price: $price,
-                            stock: $stock,
-                            emoji: $emoji,
-                            category: $category
-                        }) {
-                            id
-                        }
-                    }
-                `, product);
-                
-                if (error) {
-                    console.error('Erro ao criar produto padrão:', error);
-                }
-            }
-            
-            console.log('Produtos padrão criados para usuário:', userId);
-        } catch (error) {
-            console.error('Erro em createDefaultProducts:', error);
-        }
-    }
-
-    async function loadUserProducts(userId) {
-        try {
-            if (!nhostClient || !userId) {
-                console.log('Usando produtos locais');
-                return defaultProducts;
-            }
-
-            const { data, error } = await nhostClient.graphql.request(`
-                query GetUserProducts($userId: uuid!) {
-                    products(where: {user_id: {_eq: $userId}}) {
-                        id
-                        name
-                        price
-                        stock
-                        emoji
-                        category
-                        created_at
-                    }
-                }
-            `, {
-                userId
-            });
-            
-            if (error) {
-                console.error('Erro ao carregar produtos:', error);
-                return defaultProducts;
-            }
-            
-            if (!data?.products || data.products.length === 0) {
-                await createDefaultProducts(userId);
-                return defaultProducts;
-            }
-            
-            // Transformar dados
-            return data.products.map((p, index) => ({
-                id: p.id,
-                name: p.name,
-                price: parseFloat(p.price),
-                stock: p.stock,
-                emoji: p.emoji || '📦',
-                category: p.category,
-                _nhostId: p.id
-            }));
-        } catch (error) {
-            console.error('Erro ao carregar produtos:', error);
-            return defaultProducts;
-        }
-    }
-
-    async function saveProductToNhost(product, userId) {
-        try {
-            if (!nhostClient || !userId) return null;
-
-            if (product._nhostId) {
-                // Atualizar produto existente
-                const { data, error } = await nhostClient.graphql.request(`
-                    mutation UpdateProduct(
-                        $productId: uuid!,
-                        $name: String!,
-                        $price: numeric!,
-                        $stock: Int!,
-                        $emoji: String!,
-                        $category: String!
-                    ) {
-                        update_products_by_pk(
-                            pk_columns: {id: $productId},
-                            _set: {
-                                name: $name,
-                                price: $price,
-                                stock: $stock,
-                                emoji: $emoji,
-                                category: $category
-                            }
-                        ) {
-                            id
-                        }
-                    }
-                `, {
-                    productId: product._nhostId,
-                    name: product.name,
-                    price: product.price,
-                    stock: product.stock,
-                    emoji: product.emoji,
-                    category: product.category
-                });
-                
-                if (error) throw error;
-                return data?.update_products_by_pk?.id;
-            } else {
-                // Inserir novo produto
-                const { data, error } = await nhostClient.graphql.request(`
-                    mutation InsertProduct(
-                        $userId: uuid!,
-                        $name: String!,
-                        $price: numeric!,
-                        $stock: Int!,
-                        $emoji: String!,
-                        $category: String!
-                    ) {
-                        insert_products_one(object: {
-                            user_id: $userId,
-                            name: $name,
-                            price: $price,
-                            stock: $stock,
-                            emoji: $emoji,
-                            category: $category
-                        }) {
-                            id
-                        }
-                    }
-                `, {
-                    userId: userId,
-                    name: product.name,
-                    price: product.price,
-                    stock: product.stock,
-                    emoji: product.emoji,
-                    category: product.category
-                });
-                
-                if (error) throw error;
-                return data?.insert_products_one?.id;
-            }
-        } catch (error) {
-            console.error('Erro ao salvar produto no Nhost:', error);
-            throw error;
-        }
-    }
-
-    async function recordSaleToNhost(saleData, userId) {
-        try {
-            if (!nhostClient || !userId) {
-                console.log('Nhost não disponível, venda registrada apenas localmente');
-                return false;
-            }
-
-            console.log('Registrando venda no Nhost:', saleData.id);
-            
-            // 1. Registrar a venda
-            const { data: sale, error: saleError } = await nhostClient.graphql.request(`
-                mutation RecordSale(
-                    $saleId: String!,
-                    $userId: uuid!,
-                    $saleDate: timestamptz!,
-                    $subtotal: numeric!,
-                    $discount: numeric!,
-                    $total: numeric!,
-                    $itemsCount: Int!,
-                    $paymentMethod: String!,
-                    $processingTime: numeric!
-                ) {
-                    insert_sales_one(object: {
-                        id: $saleId,
-                        user_id: $userId,
-                        sale_date: $saleDate,
-                        subtotal: $subtotal,
-                        discount: $discount,
-                        total: $total,
-                        items_count: $itemsCount,
-                        payment_method: $paymentMethod,
-                        processing_time: $processingTime
-                    }) {
-                        id
-                    }
-                }
-            `, {
-                saleId: saleData.id,
-                userId: userId,
-                saleDate: new Date().toISOString(),
-                subtotal: saleData.subtotal,
-                discount: saleData.discount,
-                total: saleData.total,
-                itemsCount: saleData.itemsCount,
-                paymentMethod: saleData.method,
-                processingTime: saleData.processingTime
-            });
-            
-            if (saleError) {
-                console.error('Erro ao registrar venda:', saleError);
-                throw saleError;
-            }
-            
-            console.log('Venda registrada:', sale?.insert_sales_one?.id);
-            return true;
-        } catch (error) {
-            console.error('Erro ao registrar venda no Nhost:', error);
-            throw error;
-        }
-    }
-
-    async function loadSalesHistoryFromNhost(userId, filter = 'all') {
-        try {
-            if (!nhostClient || !userId) {
-                console.log('Nhost não disponível, usando histórico local');
-                return [];
-            }
-
-            console.log('Carregando histórico para usuário:', userId, 'filtro:', filter);
-            
-            let whereClause = `user_id: {_eq: "${userId}"}`;
-            
-            // Aplicar filtro de data
-            if (filter !== 'all') {
-                const now = new Date();
-                let startDate = new Date();
-                
-                if (filter === 'today') {
-                    startDate.setHours(0, 0, 0, 0);
-                } else if (filter === 'week') {
-                    startDate.setDate(now.getDate() - 7);
-                } else if (filter === 'month') {
-                    startDate.setMonth(now.getMonth() - 1);
-                }
-                
-                whereClause += `, sale_date: {_gte: "${startDate.toISOString()}"}`;
-            }
-            
-            const { data, error } = await nhostClient.graphql.request(`
-                query GetSalesHistory($userId: uuid!) {
-                    sales(
-                        where: {${whereClause}},
-                        order_by: {sale_date: desc}
-                    ) {
-                        id
-                        sale_date
-                        subtotal
-                        discount
-                        total
-                        items_count
-                        payment_method
-                        processing_time
-                    }
-                }
-            `);
-            
-            if (error) {
-                console.error('Erro ao carregar histórico:', error);
-                return [];
-            }
-            
-            console.log('Histórico carregado:', data?.sales?.length || 0, 'vendas');
-            
-            // Formatar os dados para compatibilidade
-            return (data?.sales || []).map(sale => ({
-                id: sale.id,
-                date: new Date(sale.sale_date).toLocaleString('pt-BR'),
-                timestamp: new Date(sale.sale_date).getTime(),
-                subtotal: parseFloat(sale.subtotal),
-                discount: parseFloat(sale.discount),
-                total: parseFloat(sale.total),
-                itemsCount: sale.items_count,
-                method: sale.payment_method,
-                processingTime: parseFloat(sale.processing_time) || 0
-            }));
-        } catch (error) {
-            console.error('Erro ao carregar histórico:', error);
-            return [];
-        }
-    }
-
-    async function deleteProductFromNhost(productId, userId) {
-        try {
-            if (!nhostClient || !userId) return false;
-
-            console.log('Excluindo produto do Nhost:', productId);
-            
-            const { error } = await nhostClient.graphql.request(`
-                mutation DeleteProduct($productId: uuid!, $userId: uuid!) {
-                    delete_products(
-                        where: {id: {_eq: $productId}, user_id: {_eq: $userId}}
-                    ) {
-                        affected_rows
-                    }
-                }
-            `, {
-                productId,
-                userId
-            });
-            
-            if (error) throw error;
-            
-            console.log('Produto excluído do Nhost:', productId);
-            return true;
-        } catch (error) {
-            console.error('Erro ao excluir produto:', error);
-            throw error;
-        }
-    }
-
-    // --- FUNÇÕES DE AUTENTICAÇÃO ---
-
-    function showLogin() {
-        document.getElementById('loginCard').style.display = 'block';
-        document.getElementById('registerCard').style.display = 'none';
-    }
-
-    function showRegister() {
-        document.getElementById('loginCard').style.display = 'none';
-        document.getElementById('registerCard').style.display = 'block';
-    }
-
-    async function loginUser(email, password) {
-        if (!email || !password) {
-            showToast('Preencha email e senha', 'error');
-            return;
-        }
-
-        const user = await nhostLogin(email, password);
-        
-        if (user) {
-            currentUser = user;
-            isAuthenticated = true;
-            
-            console.log('Usuário autenticado:', user.companyName);
-            
-            // Carregar dados do usuário
-            products = await loadUserProducts(user.id);
-            salesHistory = await loadSalesHistoryFromNhost(user.id);
-            
-            // Mostrar aplicação
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'grid';
-            
-            // Salvar sessão
-            localStorage.setItem('pdv_current_user', JSON.stringify(user));
-            
-            // Inicializar app
-            initApp();
-            
-            showToast(`Bem-vindo, ${user.companyName}! 👋`, 'success');
-        }
-    }
-
-    async function registerUser(userData) {
-        // Validações básicas
-        if (!userData.email || !userData.password || !userData.confirmPassword) {
-            showToast('Preencha todos os campos', 'error');
-            return;
-        }
-        
-        if (userData.password !== userData.confirmPassword) {
-            showToast('As senhas não coincidem', 'error');
-            return;
-        }
-        
-        if (userData.password.length < 6) {
-            showToast('A senha deve ter pelo menos 6 caracteres', 'error');
-            return;
-        }
-        
-        const newUser = await nhostRegister(userData);
-        
-        if (newUser) {
-            showToast('Conta criada com sucesso! 🎉', 'success');
-            
-            // Fazer login automaticamente
-            currentUser = newUser;
-            isAuthenticated = true;
-            products = await loadUserProducts(newUser.id);
-            salesHistory = [];
-            
-            // Salvar sessão
-            localStorage.setItem('pdv_current_user', JSON.stringify(newUser));
-            
-            // Mostrar aplicação
-            setTimeout(() => {
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'grid';
-                initApp();
-                showToast(`Bem-vindo, ${newUser.companyName}! 🚀`, 'success');
-            }, 1000);
-        }
-    }
-
-    function updateSubscriptionStatus() {
-        if (!currentUser) return;
-        
-        const statusEl = document.getElementById('subscriptionStatus');
-        const now = new Date();
-        const validUntil = new Date(currentUser.validUntil);
-        const daysLeft = Math.ceil((validUntil - now) / (1000 * 60 * 60 * 24));
-        
-        if (currentUser.isTrial) {
-            statusEl.innerHTML = `<i class="fas fa-star"></i> <span>Trial: ${daysLeft} dias restantes</span>`;
-            statusEl.style.background = 'var(--warning)';
-            
-            if (daysLeft <= 3) {
-                statusEl.style.background = 'var(--danger)';
-                showToast(`Seu trial termina em ${daysLeft} dias. Atualize seu plano!`, 'warning');
-            }
-        } else {
-            statusEl.innerHTML = `<i class="fas fa-crown"></i> <span>Plano Ativo</span>`;
-            statusEl.style.background = 'var(--success)';
-        }
-    }
-
-    function openAccountModal() {
-        if (!currentUser) return;
-        
-        // Preencher dados da conta
-        document.getElementById('accountCompanyName').textContent = currentUser.companyName;
-        document.getElementById('accountEmail').textContent = currentUser.email;
-        document.getElementById('accountDocument').textContent = currentUser.document || 'Não informado';
-        document.getElementById('accountPhone').textContent = currentUser.phone || 'Não informado';
-        
-        const createdAt = new Date(currentUser.createdAt);
-        document.getElementById('accountCreatedAt').textContent = createdAt.toLocaleDateString('pt-BR');
-        
-        const validUntil = new Date(currentUser.validUntil);
-        document.getElementById('accountValidUntil').textContent = validUntil.toLocaleDateString('pt-BR');
-        
-        document.getElementById('accountNextBilling').textContent = `R$ ${MONTHLY_PRICE.toFixed(2)} em ${validUntil.toLocaleDateString('pt-BR')}`;
-        
-        document.getElementById('accountPlanStatus').textContent = currentUser.isTrial ? 'TRIAL' : 'PROFISSIONAL';
-        
-        // Mostrar modal
-        document.getElementById('accountModal').style.display = 'flex';
-    }
-
-    function upgradePlan() {
-        showToast('Redirecionando para página de pagamento...', 'info');
-        setTimeout(() => {
-            document.getElementById('accountModal').style.display = 'none';
-            showToast('Página de pagamento em desenvolvimento. Em produção, isso redirecionaria para o gateway.', 'warning');
-        }, 1000);
-    }
-
-    async function logout() {
-        if (confirm('Tem certeza que deseja sair do sistema?')) {
-            try {
-                // Deslogar do Nhost
-                await nhostClient.auth.signOut();
-            } catch (error) {
-                console.error('Erro ao deslogar do Nhost:', error);
-            }
-            
-            // Resetar estado
-            currentUser = null;
-            isAuthenticated = false;
-            cart = [];
-            products = [...defaultProducts];
-            salesHistory = [];
-            
-            // Remover sessão salva
-            localStorage.removeItem('pdv_current_user');
-            
-            // Mostrar tela de login
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            document.getElementById('loginCard').style.display = 'block';
-            document.getElementById('registerCard').style.display = 'none';
-            
-            showToast('Você saiu do sistema. Até logo! 👋', 'info');
-        }
-    }
-
     // --- INICIALIZAÇÃO DO SISTEMA ---
-    async function init() {
+    function init() {
         console.log(`${APP_NAME} v${APP_VERSION} inicializando...`);
         
-        // Verificar se há usuário salvo
-        const savedUser = localStorage.getItem('pdv_current_user');
-        if (savedUser) {
-            try {
-                currentUser = JSON.parse(savedUser);
-                isAuthenticated = true;
-                
-                // Verificar se a sessão do Nhost ainda é válida
-                const isSignedIn = await nhostClient.auth.isSignedIn();
-                
-                if (isSignedIn) {
-                    // Carregar aplicação direto
-                    document.getElementById('authContainer').style.display = 'none';
-                    document.getElementById('appContainer').style.display = 'grid';
-                    
-                    // Carregar dados atualizados
-                    products = await loadUserProducts(currentUser.id);
-                    salesHistory = await loadSalesHistoryFromNhost(currentUser.id);
-                    
-                    initApp();
-                    showToast(`Bem-vindo de volta, ${currentUser.companyName}!`, 'success');
-                    return;
-                } else {
-                    // Sessão expirou, fazer login novamente
-                    localStorage.removeItem('pdv_current_user');
-                }
-            } catch (e) {
-                console.error('Erro ao carregar usuário salvo:', e);
-                localStorage.removeItem('pdv_current_user');
-            }
-        }
+        // Mostrar loader
+        showLoader();
         
-        // Mostrar tela de login
-        document.getElementById('authContainer').style.display = 'flex';
+        // Inicializar componentes
+        setTimeout(() => {
+            populateEmojiList();
+            renderAll();
+            setupBarcodeScanner();
+            setupKeyboardShortcuts();
+            createMagicParticles();
+            updateNotifications();
+            updateLiveStats();
+            
+            // Esconder loader após 1.5 segundos
+            setTimeout(() => {
+                hideLoader();
+                showToast(`Sistema ${APP_NAME} carregado com sucesso! ✨`, 'success');
+            }, 800);
+        }, 500);
         
-        // Configurar formulários
-        setupAuthForms();
+        // Configurar auto-save
+        setInterval(saveData, 30000); // Auto-save a cada 30 segundos
         
-        // Criar partículas mágicas
-        createMagicParticles();
-    }
-
-    function setupAuthForms() {
-        // Formulário de login
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            loginUser(email, password);
-        });
+        // Atualizar estatísticas em tempo real
+        setInterval(updateLiveStats, 5000);
         
-        // Formulário de cadastro
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const companyName = document.getElementById('regCompany').value.trim() || 'Minha Empresa';
-            const documentNum = document.getElementById('regDocument').value.trim() || '00.000.000/0000-00';
-            const phone = document.getElementById('regPhone').value.trim() || '(11) 99999-9999';
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            const terms = document.getElementById('regTerms').checked;
-            
-            if (!email || !password || !confirmPassword) {
-                showToast('Preencha todos os campos obrigatórios', 'error');
-                return;
-            }
-            
-            if (!terms) {
-                showToast('Você deve aceitar os termos de uso', 'error');
-                return;
-            }
-            
-            registerUser({
-                companyName,
-                document: documentNum,
-                phone,
-                email,
-                password,
-                confirmPassword
-            });
-        });
+        // Verificar estoque baixo periodicamente
+        setInterval(checkLowStock, 10000);
     }
 
     // --- ANIMAÇÕES E EFEITOS VISUAIS ---
@@ -2840,15 +1586,21 @@
     }
 
     // --- SISTEMA DE PERSISTÊNCIA ---
-    async function saveData() {
+    function saveData() {
         try {
-            if (!currentUser) return;
+            localStorage.setItem('products', JSON.stringify(products));
+            localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
             
-            // Salvar usuário atual para login automático
-            localStorage.setItem('pdv_current_user', JSON.stringify(currentUser));
+            // Salvar estatísticas
+            const appStats = {
+                totalSales: salesHistory.reduce((acc, sale) => acc + sale.total, 0),
+                totalTickets: salesHistory.length,
+                lastSave: new Date().toISOString()
+            };
+            localStorage.setItem('appStats', JSON.stringify(appStats));
             
-            // Log silencioso
-            console.log('Dados locais salvos');
+            // Log silencioso (apenas no console)
+            console.log('Dados salvos automaticamente');
         } catch (e) {
             console.error('Erro ao salvar dados:', e);
         }
@@ -2856,17 +1608,6 @@
 
     // --- NAVEGAÇÃO E INTERFACE ---
     function switchTab(tabId) {
-        // Verificar se a assinatura está ativa
-        if (!currentUser || !currentUser.validUntil) return;
-        
-        const now = new Date();
-        const validUntil = new Date(currentUser.validUntil);
-        
-        if (now > validUntil && tabId !== 'pdv') {
-            showToast('Sua assinatura expirou. Renove para acessar todas as funcionalidades.', 'error');
-            return;
-        }
-        
         // Esconder todas as seções
         document.querySelectorAll('.section').forEach(sec => {
             sec.classList.remove('active');
@@ -2912,54 +1653,6 @@
             'dashboard': 'Dashboard Analítico'
         };
         return names[tabId] || tabId;
-    }
-
-    function initApp() {
-        console.log(`Aplicação inicializada para: ${currentUser.companyName}`);
-        
-        // Mostrar loader
-        showLoader();
-        
-        // Inicializar componentes
-        setTimeout(() => {
-            populateEmojiList();
-            renderAll();
-            setupBarcodeScanner();
-            setupKeyboardShortcuts();
-            updateNotifications();
-            updateLiveStats();
-            updateSubscriptionStatus();
-            
-            // Esconder loader após 1.5 segundos
-            setTimeout(() => {
-                hideLoader();
-                showToast(`Sistema ${APP_NAME} carregado com sucesso! ✨`, 'success');
-            }, 800);
-        }, 500);
-        
-        // Configurar auto-save
-        setInterval(saveData, 30000);
-        
-        // Atualizar estatísticas em tempo real
-        setInterval(updateLiveStats, 5000);
-        
-        // Verificar estoque baixo periodicamente
-        setInterval(checkLowStock, 10000);
-        
-        // Verificar status da assinatura periodicamente
-        setInterval(checkSubscription, 60000);
-    }
-
-    function checkSubscription() {
-        if (!currentUser) return;
-        
-        const now = new Date();
-        const validUntil = new Date(currentUser.validUntil);
-        
-        if (now > validUntil) {
-            showToast('Sua assinatura expirou. Renove para continuar usando o sistema.', 'error', 10000);
-            updateSubscriptionStatus();
-        }
     }
 
     // --- SISTEMA DE ATALHOS DE TECLADO ---
@@ -3039,7 +1732,8 @@
                 // Tentar encontrar por ID, nome ou código
                 const found = products.find(p => 
                     p.id == term || 
-                    p.name.toLowerCase().includes(term)
+                    p.name.toLowerCase().includes(term) ||
+                    (p.barcode && p.barcode === term)
                 );
                 
                 if (found) {
@@ -3459,22 +2153,16 @@
 
     function openSplitPaymentModal() {
         showToast('Funcionalidade de parcelamento em desenvolvimento', 'info');
+        // Em uma versão futura, implementar interface para dividir o pagamento
     }
 
-    async function processPayment(method) {
+    function processPayment(method) {
         // Calcular totais
         let subtotal = 0;
         cart.forEach(item => {
             const product = products.find(p => p.id === item.id);
-            if (product) {
-                product.stock -= item.qty;
-                subtotal += (item.price * item.qty);
-                
-                // Atualizar estoque no Nhost
-                if (currentUser && nhostClient && product._nhostId) {
-                    updateProductStockInNhost(product._nhostId, product.stock, currentUser.id);
-                }
-            }
+            product.stock -= item.qty;
+            subtotal += (item.price * item.qty);
         });
         
         const discountAmount = subtotal * (currentDiscount / 100);
@@ -3502,22 +2190,10 @@
             processingTime: stats.processingTime
         };
         
-        // Registrar venda no Nhost
-        try {
-            if (currentUser && nhostClient) {
-                await recordSaleToNhost(saleRecord, currentUser.id);
-                showToast(`Venda registrada no servidor! ✅`, 'success');
-            }
-        } catch (error) {
-            console.error('Erro ao registrar venda no Nhost:', error);
-            showToast('Venda registrada localmente, mas houve erro no servidor', 'warning');
-        }
-        
-        // Adicionar ao histórico local
         salesHistory.unshift(saleRecord);
         currentSaleData = saleRecord;
         
-        // Resetar carrinho
+        // Resetar carrinho e salvar
         cart = [];
         currentDiscount = 0;
         updateCartUI();
@@ -3534,33 +2210,6 @@
         setTimeout(() => {
             openReceiptModal();
         }, 800);
-    }
-
-    async function updateProductStockInNhost(productId, newStock, userId) {
-        try {
-            if (!nhostClient || !productId || !userId) return;
-
-            const { error } = await nhostClient.graphql.request(`
-                mutation UpdateProductStock($productId: uuid!, $newStock: Int!, $userId: uuid!) {
-                    update_products(
-                        where: {id: {_eq: $productId}, user_id: {_eq: $userId}},
-                        _set: {stock: $newStock}
-                    ) {
-                        affected_rows
-                    }
-                }
-            `, {
-                productId,
-                newStock,
-                userId
-            });
-            
-            if (error) {
-                console.error('Erro ao atualizar estoque no Nhost:', error);
-            }
-        } catch (error) {
-            console.error('Erro em updateProductStockInNhost:', error);
-        }
     }
 
     // --- SISTEMA DE RECIBOS AVANÇADO ---
@@ -3831,7 +2480,7 @@
         });
     }
 
-    async function addProduct() {
+    function addProduct() {
         const name = document.getElementById('newProdName').value.trim();
         const price = parseFloat(document.getElementById('newProdPrice').value);
         const stock = parseInt(document.getElementById('newProdStock').value);
@@ -3844,43 +2493,35 @@
             return;
         }
         
-        // Extrair emoji
+        // Extrair emoji (pegar primeiro caractere se for emoji)
         let emoji = '📦';
         if (emojiVal) {
+            // Se o valor começar com emoji, usar ele
             const emojiRegex = /[\p{Emoji_Presentation}\p{Emoji}\uFE0F]/u;
             if (emojiRegex.test(emojiVal.charAt(0))) {
                 emoji = emojiVal.charAt(0);
             } else {
+                // Tentar encontrar emoji pelo texto
                 const found = emojiDB.find(item => item.keys.includes(emojiVal.toLowerCase()));
                 emoji = found ? found.char : '📦';
             }
         }
         
-        // Criar novo produto local
+        // Criar novo ID
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        const newProduct = { 
+        
+        // Adicionar produto
+        products.push({ 
             id: newId, 
             name, 
             price, 
             stock, 
             emoji, 
-            category: category || 'outro'
-        };
+            category: category || 'outro',
+            createdAt: new Date().toISOString()
+        });
         
-        // Salvar no Nhost se houver usuário logado
-        if (currentUser && nhostClient) {
-            try {
-                const nhostId = await saveProductToNhost(newProduct, currentUser.id);
-                newProduct._nhostId = nhostId;
-                console.log('Produto salvo no Nhost com ID:', nhostId);
-            } catch (error) {
-                console.error('Erro ao salvar produto no Nhost:', error);
-                showToast('Produto salvo localmente, mas erro no servidor', 'warning');
-            }
-        }
-        
-        // Adicionar localmente
-        products.push(newProduct);
+        saveData();
         
         // Limpar formulário
         document.getElementById('newProdName').value = '';
@@ -3894,10 +2535,6 @@
         
         // Atualizar badge de estoque baixo
         checkLowStock();
-        
-        // Atualizar UI
-        renderStock();
-        renderPOS();
     }
 
     function editProduct(id) {
@@ -3939,11 +2576,11 @@
         showToast(`Editando: ${product.name}`, 'info');
     }
 
-    async function saveProductEdit(id) {
+    function saveProductEdit(id) {
         const product = products.find(p => p.id === id);
         if (!product) return;
         
-        // Atualizar dados localmente
+        // Atualizar dados
         product.name = document.getElementById('newProdName').value.trim();
         product.price = parseFloat(document.getElementById('newProdPrice').value);
         product.stock = parseInt(document.getElementById('newProdStock').value);
@@ -3955,23 +2592,9 @@
             product.emoji = emojiRegex.test(emojiVal.charAt(0)) ? emojiVal.charAt(0) : product.emoji;
         }
         
-        // Salvar no Nhost se houver usuário logado
-        if (currentUser && nhostClient && product._nhostId) {
-            try {
-                await saveProductToNhost(product, currentUser.id);
-                console.log('Produto atualizado no Nhost:', product._nhostId);
-            } catch (error) {
-                console.error('Erro ao atualizar produto no Nhost:', error);
-                showToast('Produto atualizado localmente, mas erro no servidor', 'warning');
-            }
-        }
-        
+        saveData();
         cancelEdit('<i class="fas fa-plus-circle"></i> Adicionar');
         showToast(`Produto "${product.name}" atualizado com sucesso!`, 'success');
-        
-        // Atualizar UI
-        renderStock();
-        renderPOS();
     }
 
     function cancelEdit(originalButtonText) {
@@ -3995,22 +2618,14 @@
         showToast('Edição cancelada', 'info');
     }
 
-    async function updateStock(id, newQty) {
+    function updateStock(id, newQty) {
         const p = products.find(p => p.id === id);
         if (!p) return;
         
         const oldQty = p.stock;
         p.stock = parseInt(newQty) || 0;
         
-        // Atualizar no Nhost se houver usuário logado
-        if (currentUser && nhostClient && p._nhostId) {
-            try {
-                await saveProductToNhost(p, currentUser.id);
-                console.log('Estoque atualizado no Nhost:', p._nhostId, 'novo estoque:', p.stock);
-            } catch (error) {
-                console.error('Erro ao atualizar estoque no Nhost:', error);
-            }
-        }
+        saveData();
         
         // Notificar se estoque ficou baixo
         if (oldQty >= 5 && p.stock < 5) {
@@ -4019,13 +2634,9 @@
         
         // Atualizar badge de estoque baixo
         checkLowStock();
-        
-        // Atualizar UI
-        renderStock();
-        renderPOS();
     }
 
-    async function deleteProduct(id) {
+    function deleteProduct(id) {
         const product = products.find(p => p.id === id);
         if (!product) return;
         
@@ -4041,27 +2652,12 @@
                 updateCartUI();
             }
             
-            // Excluir do Nhost se houver usuário logado
-            if (currentUser && nhostClient && product._nhostId) {
-                try {
-                    await deleteProductFromNhost(product._nhostId, currentUser.id);
-                    console.log('Produto excluído do Nhost:', product._nhostId);
-                } catch (error) {
-                    console.error('Erro ao excluir produto do Nhost:', error);
-                    showToast('Produto excluído localmente, mas erro no servidor', 'warning');
-                }
-            }
-            
-            // Excluir localmente
             products = products.filter(p => p.id !== id);
+            saveData();
             showToast(`Produto "${product.name}" excluído com sucesso`, 'info');
             
             // Atualizar badge de estoque baixo
             checkLowStock();
-            
-            // Atualizar UI
-            renderStock();
-            renderPOS();
         }
     }
 
@@ -4141,17 +2737,7 @@
     }
 
     // --- DASHBOARD ANALÍTICO ---
-    async function updateDashboard() {
-        // Carregar histórico atualizado do Nhost
-        if (currentUser) {
-            salesHistory = await loadSalesHistoryFromNhost(currentUser.id, 'all');
-            renderDashboardData();
-        } else {
-            renderDashboardData();
-        }
-    }
-
-    function renderDashboardData() {
+    function updateDashboard() {
         // Calcular vendas de hoje
         const today = new Date().toDateString();
         const todaySales = salesHistory.filter(s => 
@@ -4197,16 +2783,14 @@
         // Produto mais vendido
         const allItems = [];
         salesHistory.forEach(sale => {
-            if (sale.items) {
-                sale.items.forEach(item => {
-                    const existing = allItems.find(i => i.id === item.id);
-                    if (existing) {
-                        existing.qty += item.qty;
-                    } else {
-                        allItems.push({...item});
-                    }
-                });
-            }
+            sale.items.forEach(item => {
+                const existing = allItems.find(i => i.id === item.id);
+                if (existing) {
+                    existing.qty += item.qty;
+                } else {
+                    allItems.push({...item});
+                }
+            });
         });
         
         if (allItems.length > 0) {
@@ -4215,9 +2799,6 @@
             );
             document.getElementById('dashTopProduct').textContent = topProduct.name.substring(0, 15) + (topProduct.name.length > 15 ? '...' : '');
             document.getElementById('dashTopProductQty').textContent = `${topProduct.qty} unidades`;
-        } else {
-            document.getElementById('dashTopProduct').textContent = '-';
-            document.getElementById('dashTopProductQty').textContent = '0 unidades';
         }
         
         // Estoque baixo
@@ -4303,13 +2884,9 @@
         details += `Total: R$ ${sale.total.toFixed(2)}\n\n`;
         details += `ITENS:\n`;
         
-        if (sale.items) {
-            sale.items.forEach(item => {
-                details += `${item.qty}x ${item.name} - R$ ${(item.price * item.qty).toFixed(2)}\n`;
-            });
-        } else {
-            details += `Nenhum item disponível\n`;
-        }
+        sale.items.forEach(item => {
+            details += `${item.qty}x ${item.name} - R$ ${(item.price * item.qty).toFixed(2)}\n`;
+        });
         
         alert(details);
     }
@@ -4321,7 +2898,7 @@
         const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         const salesData = [120, 190, 300, 500, 200, 350, 400];
         
-        // Criar gráfico simples com divs
+        // Criar gráfico simples com divs (em uma versão real, usaríamos uma biblioteca como Chart.js)
         chartEl.innerHTML = `
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
                 <div style="display: flex; justify-content: space-around; align-items: flex-end; height: 80%; padding: 0 20px;">
@@ -4478,6 +3055,7 @@
         }
     }
 
+    // Verificar modo escuro salvo
     function checkDarkModePreference() {
         const darkModeSaved = localStorage.getItem('darkMode') === 'true';
         if (darkModeSaved) {
@@ -4536,25 +3114,11 @@
     window.filterEmojiList = filterEmojiList;
     window.suggestEmoji = suggestEmoji;
     window.openSplitPaymentModal = openSplitPaymentModal;
-    window.showLogin = showLogin;
-    window.showRegister = showRegister;
-    window.openAccountModal = openAccountModal;
-    window.upgradePlan = upgradePlan;
-    window.logout = logout;
-    window.showTerms = function() {
-        alert(`TERMOS DE USO DO PDV MÁGICO PRO
-
-1. Período de Teste: 7 dias gratuitos
-2. Assinatura: R$ 29,90/mês após o período de teste
-3. Pagamento: Cobrança automática mensal
-4. Cancelamento: A qualquer momento
-5. Dados: Seus dados são armazenados localmente e no Nhost
-
-Para cancelar, entre em contato com nosso suporte.`);
-    };
 
     // Log de inicialização
     console.log(`${APP_NAME} v${APP_VERSION} pronto para uso!`);
+    console.log(`Produtos carregados: ${products.length}`);
+    console.log(`Histórico de vendas: ${salesHistory.length} registros`);
 </script>
 </body>
 </html>
