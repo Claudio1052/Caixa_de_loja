@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDV Mágico ✨ Pro | Conectado Supabase</title>
+    <title>PDV Mágico ✨ | Supabase Diagnostic</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,25 +15,11 @@
         :root {
             --bg-color: #e0e5ec;
             --glass: rgba(255, 255, 255, 0.85);
-            --glass-dark: rgba(255, 255, 255, 0.95);
             --primary: #6c5ce7;
-            --primary-light: #8579ec;
-            --primary-dark: #5649c0;
             --secondary: #00cec9;
-            --accent: #fd79a8;
-            --success: #00b894;
-            --warning: #fdcb6e;
             --danger: #ff7675;
-            --info: #0984e3;
-            --whatsapp: #25D366;
-            --email: #0984e3;
+            --success: #00b894;
             --text: #2d3436;
-            --text-light: #636e72;
-            --shadow: 0 20px 40px rgba(31, 38, 135, 0.15);
-            --shadow-light: 0 10px 20px rgba(31, 38, 135, 0.1);
-            --border: 1px solid rgba(255, 255, 255, 0.25);
-            --border-radius: 24px;
-            --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
@@ -41,712 +27,435 @@
         body {
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             min-height: 100vh;
-            display: flex;
             padding: 20px;
             color: var(--text);
-            position: relative;
-            overflow-x: hidden;
         }
 
-        /* Estrutura Principal */
+        /* Status Conexão */
+        .status-bar {
+            background: white; padding: 10px 20px; border-radius: 15px; 
+            margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .status-indicator { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; }
+        .online .dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .offline .dot { background: var(--danger); }
+        .error-msg { color: var(--danger); font-size: 0.85rem; font-weight: 700; display: none; }
+
+        /* Layout Principal */
         .app-container {
-            display: grid;
-            grid-template-columns: 80px 1fr;
-            width: 100%;
-            height: calc(100vh - 40px);
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: var(--border);
-            overflow: hidden;
-            z-index: 10;
+            display: grid; grid-template-columns: 250px 1fr; gap: 20px;
+            height: calc(100vh - 100px);
         }
 
         /* Sidebar */
         .sidebar {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 30px;
-            background: rgba(255, 255, 255, 0.3);
-            border-right: var(--border);
+            background: var(--glass); border-radius: 20px; padding: 20px;
+            display: flex; flex-direction: column; gap: 10px;
         }
-
-        .nav-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 18px;
-            border: none;
-            background: transparent;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: var(--transition);
-            color: #b2bec3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+        .menu-btn {
+            padding: 15px; border: none; background: transparent; text-align: left;
+            font-weight: 700; color: #636e72; cursor: pointer; border-radius: 12px;
+            transition: 0.3s; display: flex; align-items: center; gap: 10px;
         }
-
-        .nav-btn:hover { transform: translateY(-5px); background: #fff; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2); }
-        .nav-btn.active { background: var(--primary); color: #fff; box-shadow: 0 10px 20px -5px rgba(108, 92, 231, 0.4); transform: scale(1.05); }
-
-        .nav-notification {
-            position: absolute; top: -5px; right: -5px; background: var(--danger); color: white;
-            font-size: 0.7rem; border-radius: 50%; width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center; font-weight: 800;
-        }
+        .menu-btn:hover, .menu-btn.active { background: var(--primary); color: white; }
 
         /* Conteúdo */
-        .content-area { padding: 30px; overflow-y: auto; position: relative; width: 100%; }
-        .section { display: none; height: 100%; animation: fadeIn 0.5s ease; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* PDV Layout */
-        .pdv-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; height: calc(100% - 100px); }
-        
-        .product-list {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px; align-content: start; overflow-y: auto; padding-right: 10px;
-            max-height: calc(100vh - 200px);
+        .main-content {
+            background: var(--glass); border-radius: 20px; padding: 20px;
+            overflow-y: auto; position: relative;
         }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
 
+        /* Grid Produtos */
+        .products-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;
+        }
         .product-card {
-            background: white; border-radius: 22px; padding: 20px; text-align: center;
-            cursor: pointer; transition: var(--transition); position: relative; overflow: hidden;
-            box-shadow: var(--shadow-light); border: 2px solid transparent;
+            background: white; padding: 15px; border-radius: 15px; text-align: center;
+            cursor: pointer; transition: 0.3s; border: 2px solid transparent;
         }
+        .product-card:hover { transform: translateY(-5px); border-color: var(--secondary); }
+        .p-emoji { font-size: 2.5rem; display: block; margin-bottom: 5px; }
+        .p-price { color: var(--primary); font-weight: 900; font-size: 1.1rem; }
 
-        .product-card:hover { transform: translateY(-10px) scale(1.03); border-color: var(--secondary); box-shadow: 0 20px 40px rgba(0, 206, 201, 0.2); }
-        .product-emoji { font-size: 3.5rem; margin-bottom: 15px; display: block; }
-        .product-name { font-weight: 800; font-size: 1rem; margin-bottom: 8px; color: var(--text); }
-        .product-price { color: var(--primary); font-weight: 900; font-size: 1.3rem; }
-        .product-stock { position: absolute; top: 10px; right: 10px; font-size: 0.75rem; background: #dfe6e9; padding: 4px 10px; border-radius: 12px; font-weight: 700; }
-        .stock-low { background: var(--danger); color: white; }
-
-        /* Carrinho */
-        .cart-panel { background: white; border-radius: 28px; padding: 25px; display: flex; flex-direction: column; box-shadow: var(--shadow-light); height: 100%; }
-        .cart-items { flex: 1; overflow-y: auto; margin: 15px 0; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; margin-bottom: 12px; padding: 15px; border-radius: 16px; border-left: 4px solid var(--primary); }
-        .btn-checkout { background: linear-gradient(90deg, var(--primary), var(--primary-light)); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 1.2rem; cursor: pointer; width: 100%; transition: var(--transition); margin-top: auto; }
-        .btn-checkout:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4); }
-
-        /* Tabelas */
-        .table-container { background: white; padding: 25px; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-light); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #f1f2f6; }
-        th { color: var(--primary); font-weight: 800; background: #f8f9ff; }
+        /* Carrinho Lateral (dentro do PDV) */
+        .pdv-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; height: 100%; }
+        .cart-panel { background: white; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; }
+        .cart-list { flex: 1; overflow-y: auto; margin: 10px 0; }
+        .cart-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px dashed #eee; font-size: 0.9rem; }
         
-        /* Inputs */
-        input, select { padding: 14px; border-radius: 14px; border: 2px solid #dfe6e9; width: 100%; margin-bottom: 10px; }
-        input:focus { border-color: var(--primary); outline: none; }
+        .btn-primary {
+            background: var(--primary); color: white; border: none; padding: 12px;
+            border-radius: 10px; width: 100%; font-weight: 800; cursor: pointer;
+        }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* Modais */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 40px; border-radius: 32px; width: 450px; max-width: 90%; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        /* Formulários */
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input, select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; flex: 1; }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         
-        /* Status Conexão */
-        .connection-status { position: fixed; top: 10px; right: 20px; background: white; padding: 8px 15px; border-radius: 20px; box-shadow: var(--shadow-light); display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; z-index: 1000; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
-        .online .status-dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
-        .offline .status-dot { background: var(--danger); }
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 400px; text-align: center; }
 
-        /* Toast */
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #333; color: white; padding: 16px 30px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; z-index: 3000; display: flex; align-items: center; gap: 15px; }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .toast.success { background: var(--success); }
-        .toast.error { background: var(--danger); }
     </style>
 </head>
 <body>
-    
-    <div class="connection-status" id="connectionStatus">
-        <div class="status-dot"></div>
-        <span id="statusText">Conectando...</span>
-    </div>
 
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i>
-        <span>Mensagem aqui</span>
+    <div class="status-bar">
+        <div class="status-indicator" id="statusIndicator">
+            <div class="dot"></div>
+            <span id="statusText">Verificando conexão...</span>
+        </div>
+        <span id="errorMsg" class="error-msg"></span>
     </div>
 
     <div class="app-container">
-        <nav class="sidebar">
-            <button class="nav-btn active" onclick="switchTab('pdv')" title="Vendas">
-                <i class="fas fa-shopping-cart"></i>
-            </button>
-            <button class="nav-btn" onclick="switchTab('stock')" title="Estoque">
-                <i class="fas fa-box-open"></i>
-            </button>
-            <button class="nav-btn" onclick="switchTab('history')" title="Histórico">
-                <i class="fas fa-history"></i>
-            </button>
-            <button class="nav-btn" onclick="switchTab('dashboard')" title="Dashboard">
-                <i class="fas fa-chart-pie"></i>
-            </button>
-        </nav>
+        <div class="sidebar">
+            <h2 style="text-align:center; margin-bottom:20px;">✨ PDV Mágico</h2>
+            <button class="menu-btn active" onclick="showSection('pdv')"><i class="fas fa-cash-register"></i> Caixa</button>
+            <button class="menu-btn" onclick="showSection('estoque')"><i class="fas fa-boxes"></i> Estoque</button>
+            <button class="menu-btn" onclick="showSection('historico')"><i class="fas fa-history"></i> Vendas</button>
+        </div>
 
-        <main class="content-area">
+        <div class="main-content">
             
-            <section id="pdv" class="section active">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2><i class="fas fa-magic"></i> Caixa Mágico</h2>
-                    <input type="text" id="searchInput" placeholder="🔍 Buscar produto..." oninput="renderPOS()" style="width: 300px; margin-bottom: 0;">
-                </div>
-
-                <div class="pdv-grid">
-                    <div class="product-list" id="productsGrid">
-                        </div>
-
+            <div id="pdv" class="section active">
+                <div class="pdv-layout">
+                    <div>
+                        <input type="text" id="searchProd" placeholder="🔍 Buscar produto..." onkeyup="renderProducts()" style="width:100%; margin-bottom:15px;">
+                        <div class="products-grid" id="productsContainer">
+                            </div>
+                    </div>
+                    
                     <div class="cart-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3>🛒 Cesta</h3>
-                            <button onclick="clearCart()" style="background:none; border:none; color:var(--danger); cursor:pointer;">
-                                <i class="fas fa-trash"></i> Limpar
-                            </button>
+                        <h3>🛒 Cesta</h3>
+                        <div class="cart-list" id="cartContainer">
+                            <p style="text-align:center; color:#999; margin-top:20px;">Cesta vazia</p>
                         </div>
-                        
-                        <div class="cart-items" id="cartItems">
-                            <div style="text-align: center; color: #b2bec3; margin-top: 50px;">
-                                <i class="fas fa-basket-shopping" style="font-size: 3rem; margin-bottom: 10px;"></i>
-                                <p>Cesta vazia...</p>
-                            </div>
-                        </div>
-
-                        <div style="border-top: 2px dashed #dfe6e9; padding-top: 20px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: 900; margin-bottom: 20px; color: var(--primary);">
-                                <span>Total</span>
-                                <span id="cartTotal">R$ 0,00</span>
-                            </div>
-                            <button class="btn-checkout" onclick="openPaymentModal()" id="btnCheckout" disabled>
-                                <i class="fas fa-bolt"></i> Finalizar Venda
-                            </button>
-                        </div>
+                        <div style="font-size:1.5rem; font-weight:900; text-align:right; margin-bottom:10px;" id="totalCart">R$ 0,00</div>
+                        <button class="btn-primary" onclick="startCheckout()" id="btnCheckout" disabled>Finalizar</button>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <section id="stock" class="section">
-                <h2><i class="fas fa-boxes"></i> Gerenciar Estoque</h2>
-                
-                <div class="table-container" style="margin-bottom: 30px;">
-                    <h3>✨ Adicionar Novo Produto</h3>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                        <input type="text" id="newProdName" placeholder="Nome do Produto">
-                        <input type="number" id="newProdPrice" placeholder="Preço (R$)" step="0.01">
-                        <input type="number" id="newProdStock" placeholder="Qtd Inicial">
-                        <input type="text" id="newProdEmoji" placeholder="Emoji 📦" style="width: 80px; text-align: center;">
-                        <select id="newProdCategory">
-                            <option value="geral">Geral</option>
-                            <option value="alimento">Alimento</option>
-                            <option value="bebida">Bebida</option>
-                            <option value="eletronico">Eletrônico</option>
-                        </select>
-                        <button onclick="addProduct()" class="btn-checkout" style="width: auto; margin: 0; padding: 14px 30px;">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
+            <div id="estoque" class="section">
+                <h3>📦 Gerenciar Produtos</h3>
+                <div class="form-group">
+                    <input type="text" id="nNome" placeholder="Nome">
+                    <input type="number" id="nPreco" placeholder="Preço" step="0.01">
+                    <input type="number" id="nEstoque" placeholder="Qtd">
+                    <input type="text" id="nEmoji" placeholder="Emoji" style="max-width:60px;">
+                    <button class="btn-primary" style="width:auto;" onclick="addProduct()">+</button>
                 </div>
+                <table>
+                    <thead><tr><th>Nome</th><th>Preço</th><th>Estoque</th><th>Ação</th></tr></thead>
+                    <tbody id="stockTable"></tbody>
+                </table>
+            </div>
 
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Preço</th>
-                                <th>Estoque</th>
-                                <th>Categoria</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stockTableBody">
-                            </tbody>
-                    </table>
-                </div>
-            </section>
+            <div id="historico" class="section">
+                <h3>📜 Histórico de Vendas</h3>
+                <button onclick="loadSales()" style="margin-bottom:10px; padding:5px 10px;">Atualizar</button>
+                <table>
+                    <thead><tr><th>ID</th><th>Data</th><th>Total</th><th>Pagamento</th></tr></thead>
+                    <tbody id="salesTable"></tbody>
+                </table>
+            </div>
 
-            <section id="history" class="section">
-                <h2><i class="fas fa-history"></i> Histórico de Vendas</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Data</th>
-                                <th>Itens</th>
-                                <th>Total</th>
-                                <th>Pagamento</th>
-                            </tr>
-                        </thead>
-                        <tbody id="salesTableBody">
-                            </tbody>
-                    </table>
-                </div>
-            </section>
-             <section id="dashboard" class="section">
-                <h2><i class="fas fa-chart-pie"></i> Dashboard</h2>
-                <div class="pdv-grid">
-                    <div class="table-container">
-                        <canvas id="salesChart"></canvas>
-                    </div>
-                    <div class="table-container">
-                         <h3>Resumo</h3>
-                         <p>Total Vendido Hoje: <strong id="dashTotalToday">R$ 0,00</strong></p>
-                         <p>Vendas Hoje: <strong id="dashCountToday">0</strong></p>
-                    </div>
-                </div>
-            </section>
-        </main>
+        </div>
     </div>
 
-    <div class="modal-overlay" id="paymentModal">
-        <div class="modal-content">
-            <h2>💸 Confirmar Pagamento</h2>
-            <h1 id="modalTotal" style="color: var(--primary); font-size: 3rem; margin: 20px 0;">R$ 0,00</h1>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <button onclick="processPayment('dinheiro')" class="btn-checkout" style="background: #00b894;">💵 Dinheiro</button>
-                <button onclick="processPayment('pix')" class="btn-checkout" style="background: #00cec9;">💠 Pix</button>
-                <button onclick="processPayment('cartao')" class="btn-checkout" style="background: #6c5ce7;">💳 Cartão</button>
-                <button onclick="closePaymentModal()" class="btn-checkout" style="background: #ff7675;">❌ Cancelar</button>
+    <div class="modal" id="payModal">
+        <div class="modal-box">
+            <h2>Total: <span id="payTotal" style="color:var(--primary)">R$ 0,00</span></h2>
+            <p>Selecione o método:</p>
+            <div style="display:grid; gap:10px; margin-top:20px;">
+                <button class="btn-primary" onclick="finishSale('dinheiro')">💵 Dinheiro</button>
+                <button class="btn-primary" onclick="finishSale('pix')">💠 Pix</button>
+                <button class="btn-primary" onclick="finishSale('cartao')">💳 Cartão</button>
+                <button class="btn-primary" style="background:var(--danger);" onclick="closeModal()">Cancelar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO SUPABASE ---
-        const supabaseUrl = 'https://kbucnveojexlxlnefmdo.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidWNudmVvamV4bHhsbmVmbWRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTUzOTgsImV4cCI6MjA4NTI3MTM5OH0.usSiBO518-4rdkvVxq1QAi71hCLTicIurfAu2N0gShs';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // --- CONEXÃO SUPABASE ---
+        // Usando a Anon Key (JWT) que é o padrão para o cliente JS
+        const SB_URL = 'https://kbucnveojexlxlnefmdo.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidWNudmVvamV4bHhsbmVmbWRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTUzOTgsImV4cCI6MjA4NTI3MTM5OH0.usSiBO518-4rdkvVxq1QAi71hCLTicIurfAu2N0gShs';
+        
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // --- ESTADO DO SISTEMA ---
+        // --- VARIÁVEIS ---
         let products = [];
         let cart = [];
-        let salesHistory = [];
         let isOnline = false;
 
-        // Produtos padrão para fallback caso o banco esteja vazio
-        const defaultProducts = [
-            { id: 1, name: 'Hambúrguer Mágico', price: 25.00, stock: 20, emoji: '🍔', category: 'alimento' },
-            { id: 2, name: 'Poção de Cafeína', price: 8.50, stock: 50, emoji: '☕', category: 'bebida' }
-        ];
-
         // --- INICIALIZAÇÃO ---
-        async function init() {
-            console.log("Iniciando PDV...");
-            await checkConnection();
-            
+        window.onload = async () => {
+            await testConnection();
             if(isOnline) {
-                await loadDataFromSupabase();
+                await loadProducts();
             } else {
-                loadLocalData();
+                // Dados de teste offline
+                products = [
+                    { id: 999, nome: 'Produto Offline', preco: 10.00, estoque: 100, emoji: '⚠️' }
+                ];
+                renderProducts();
+                renderStock();
             }
+        };
 
-            renderAll();
-            setInterval(checkConnection, 30000); // Checa conexão a cada 30s
-        }
+        // --- FUNÇÃO DE DIAGNÓSTICO ---
+        async function testConnection() {
+            const statusDiv = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const errorMsg = document.getElementById('errorMsg');
 
-        async function checkConnection() {
             try {
-                const { data, error } = await supabase.from('produtos').select('count', { count: 'exact', head: true });
-                if (!error) {
-                    isOnline = true;
-                    document.getElementById('connectionStatus').className = 'connection-status online';
-                    document.getElementById('statusText').innerText = 'Online • Supabase';
-                } else {
-                    throw error;
-                }
-            } catch (e) {
-                console.log('Offline:', e);
+                // Tenta buscar apenas 1 item para testar a tabela
+                let { data, error } = await supabase.from('produtos').select('count', { count: 'exact', head: true });
+
+                if (error) throw error;
+
+                isOnline = true;
+                statusDiv.className = 'status-indicator online';
+                statusText.innerText = 'Online • Conectado';
+                errorMsg.style.display = 'none';
+                console.log("Conexão Supabase: SUCESSO");
+
+            } catch (err) {
+                console.error("ERRO DE CONEXÃO:", err);
                 isOnline = false;
-                document.getElementById('connectionStatus').className = 'connection-status offline';
-                document.getElementById('statusText').innerText = 'Offline • Local';
-            }
-        }
-
-        // --- GERENCIAMENTO DE DADOS ---
-        async function loadDataFromSupabase() {
-            try {
-                // 1. Carregar Produtos
-                let { data: dbProds, error: errProds } = await supabase.from('produtos').select('*').order('nome');
+                statusDiv.className = 'status-indicator offline';
+                statusText.innerText = 'Offline';
                 
-                if (errProds) throw errProds;
-
-                if (dbProds && dbProds.length > 0) {
-                    products = dbProds.map(p => ({
-                        id: p.id,
-                        name: p.nome,
-                        price: parseFloat(p.preco),
-                        stock: parseInt(p.estoque),
-                        emoji: p.emoji || '📦',
-                        category: p.categoria
-                    }));
+                // Exibe o erro específico na tela para o usuário ver
+                errorMsg.style.display = 'block';
+                if(err.code === '42P01') {
+                    errorMsg.innerText = "ERRO: Tabela 'produtos' não existe. Rode o SQL no Supabase.";
+                    alert("Atenção: As tabelas do banco de dados não foram encontradas.\n\nPor favor, vá ao Supabase > SQL Editor e rode o script de criação das tabelas.");
+                } else if(err.message === 'Failed to fetch') {
+                    errorMsg.innerText = "ERRO: Falha de Rede (Verifique Internet/CORS)";
                 } else {
-                    // Se banco vazio, popula com default (opcional)
-                    products = []; 
+                    errorMsg.innerText = `ERRO: ${err.message}`;
                 }
-
-                // 2. Carregar Histórico
-                let { data: dbSales, error: errSales } = await supabase
-                    .from('vendas')
-                    .select('*, itens_venda(*)')
-                    .order('data_hora', { ascending: false })
-                    .limit(50);
-
-                if (!errSales && dbSales) {
-                    salesHistory = dbSales.map(s => ({
-                        id: s.id,
-                        date: new Date(s.data_hora).toLocaleString('pt-BR'),
-                        total: parseFloat(s.total),
-                        method: s.metodo_pagamento,
-                        items: s.itens_venda
-                    }));
-                }
-
-                // Salvar cache local
-                localStorage.setItem('products', JSON.stringify(products));
-                localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
-
-            } catch (error) {
-                console.error("Erro ao carregar do Supabase:", error);
-                showToast("Erro ao sincronizar dados.", "error");
-                loadLocalData();
             }
         }
 
-        function loadLocalData() {
-            const savedProds = localStorage.getItem('products');
-            if (savedProds) products = JSON.parse(savedProds);
-            else products = defaultProducts; // fallback inicial
+        // --- LÓGICA DE DADOS ---
+        async function loadProducts() {
+            let { data, error } = await supabase.from('produtos').select('*').order('nome');
+            if(!error && data) {
+                products = data;
+                renderProducts();
+                renderStock();
+            }
         }
 
-        // --- FUNÇÕES DE VENDAS ---
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
+        async function addProduct() {
+            const nome = document.getElementById('nNome').value;
+            const preco = parseFloat(document.getElementById('nPreco').value);
+            const estoque = parseInt(document.getElementById('nEstoque').value);
+            const emoji = document.getElementById('nEmoji').value || '📦';
 
-            if (product.stock <= 0) {
-                showToast(`Sem estoque de ${product.name}!`, 'error');
-                return;
-            }
+            if(!nome || isNaN(preco)) return alert("Preencha os dados!");
 
-            const existingItem = cart.find(item => item.id === productId);
-            if (existingItem) {
-                if (existingItem.qty < product.stock) {
-                    existingItem.qty++;
+            if(isOnline) {
+                const { data, error } = await supabase
+                    .from('produtos')
+                    .insert([{ nome, preco, estoque, emoji }])
+                    .select();
+                
+                if(error) {
+                    alert("Erro ao salvar: " + error.message);
                 } else {
-                    showToast('Estoque máximo atingido no carrinho', 'warning');
+                    await loadProducts(); // Recarrega do banco
+                    clearForm();
                 }
             } else {
-                cart.push({ ...product, qty: 1 });
+                alert("Você está offline. Não é possível cadastrar novos produtos.");
             }
-            renderCart();
         }
 
-        function removeFromCart(index) {
-            cart.splice(index, 1);
+        async function deleteProduct(id) {
+            if(!confirm("Excluir?")) return;
+            if(isOnline) {
+                await supabase.from('produtos').delete().eq('id', id);
+                await loadProducts();
+            }
+        }
+
+        // --- CARRINHO E VENDA ---
+        function addToCart(id) {
+            const prod = products.find(p => p.id === id);
+            const item = cart.find(i => i.id === id);
+            
+            if(prod.estoque <= 0) return alert("Sem estoque!");
+
+            if(item) {
+                if(item.qty < prod.estoque) item.qty++;
+            } else {
+                cart.push({ ...prod, qty: 1 });
+            }
             renderCart();
         }
 
         function renderCart() {
-            const container = document.getElementById('cartItems');
-            const totalEl = document.getElementById('cartTotal');
-            const btn = document.getElementById('btnCheckout');
-            
+            const container = document.getElementById('cartContainer');
             container.innerHTML = '';
             let total = 0;
 
-            if (cart.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: #b2bec3; margin-top: 50px;"><i class="fas fa-basket-shopping" style="font-size: 3rem; margin-bottom: 10px;"></i><p>Cesta vazia...</p></div>`;
-                btn.disabled = true;
-                totalEl.innerText = 'R$ 0,00';
-                return;
-            }
-
-            cart.forEach((item, index) => {
-                const itemTotal = item.price * item.qty;
-                total += itemTotal;
-                
+            cart.forEach((item, idx) => {
+                total += item.preco * item.qty;
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
-                    <div>
-                        <div style="font-weight:bold;">${item.name}</div>
-                        <div style="font-size:0.85rem; color:#636e72;">${item.qty}x R$ ${item.price.toFixed(2)}</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-weight:bold; color:var(--primary);">R$ ${itemTotal.toFixed(2)}</span>
-                        <i class="fas fa-trash" onclick="removeFromCart(${index})" style="color:var(--danger); cursor:pointer;"></i>
-                    </div>
+                    <span>${item.nome} (${item.qty}x)</span>
+                    <span style="font-weight:bold">R$ ${(item.preco * item.qty).toFixed(2)} 
+                    <i class="fas fa-trash" style="color:red; cursor:pointer; margin-left:10px;" onclick="removeFromCart(${idx})"></i></span>
                 `;
                 container.appendChild(div);
             });
 
-            totalEl.innerText = `R$ ${total.toFixed(2)}`;
-            btn.disabled = false;
+            document.getElementById('totalCart').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('btnCheckout').disabled = cart.length === 0;
         }
 
-        function openPaymentModal() {
-            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-            document.getElementById('modalTotal').innerText = `R$ ${total.toFixed(2)}`;
-            document.getElementById('paymentModal').style.display = 'flex';
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentModal').style.display = 'none';
-        }
-
-        async function processPayment(method) {
-            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-            const saleId = 'V' + Date.now();
-            const saleData = {
-                id: saleId,
-                total: total,
-                subtotal: total,
-                desconto: 0,
-                metodo_pagamento: method,
-                itens_count: cart.reduce((acc, i) => acc + i.qty, 0),
-                tempo_processamento: 0
-            };
-
-            // Atualizar UI imediatamente (Optimistic UI)
-            closePaymentModal();
-            showToast('Processando venda...', 'success');
-
-            // Atualizar estoque local
-            cart.forEach(cartItem => {
-                const product = products.find(p => p.id === cartItem.id);
-                if (product) product.stock -= cartItem.qty;
-            });
-
-            if (isOnline) {
-                try {
-                    // 1. Salvar Venda
-                    const { error: saleErr } = await supabase.from('vendas').insert(saleData);
-                    if (saleErr) throw saleErr;
-
-                    // 2. Salvar Itens
-                    const itemsPayload = cart.map(item => ({
-                        venda_id: saleId,
-                        produto_id: item.id,
-                        nome_produto: item.name,
-                        quantidade: item.qty,
-                        preco_unitario: item.price,
-                        total_item: item.price * item.qty
-                    }));
-                    
-                    const { error: itemsErr } = await supabase.from('itens_venda').insert(itemsPayload);
-                    if (itemsErr) throw itemsErr;
-
-                    // 3. Atualizar Estoque no Banco
-                    for (const item of cart) {
-                        const newStock = products.find(p => p.id === item.id).stock;
-                        await supabase.from('produtos').update({ estoque: newStock }).eq('id', item.id);
-                    }
-
-                    showToast('Venda salva no Supabase! ✨', 'success');
-
-                } catch (err) {
-                    console.error("Erro na venda online:", err);
-                    showToast('Venda salva apenas localmente (Erro Sync)', 'warning');
-                }
-            } else {
-                showToast('Venda salva localmente (Offline)', 'warning');
-            }
-
-            // Atualizar histórico local
-            salesHistory.unshift({
-                id: saleId,
-                date: new Date().toLocaleString(),
-                total: total,
-                method: method,
-                items: [...cart]
-            });
-            
-            cart = [];
-            renderAll();
-            saveLocalData(); // Backup local
-        }
-
-        // --- GERENCIAMENTO DE PRODUTOS ---
-        async function addProduct() {
-            const name = document.getElementById('newProdName').value;
-            const price = parseFloat(document.getElementById('newProdPrice').value);
-            const stock = parseInt(document.getElementById('newProdStock').value);
-            const emoji = document.getElementById('newProdEmoji').value || '📦';
-            const category = document.getElementById('newProdCategory').value;
-
-            if (!name || isNaN(price) || isNaN(stock)) {
-                showToast('Preencha os campos corretamente', 'error');
-                return;
-            }
-
-            const newProd = { nome: name, preco: price, estoque: stock, emoji, categoria };
-
-            if (isOnline) {
-                try {
-                    const { data, error } = await supabase.from('produtos').insert([newProd]).select().single();
-                    if (error) throw error;
-                    
-                    // Adicionar ao array local com o ID real do banco
-                    products.push({
-                        id: data.id,
-                        name: data.nome,
-                        price: data.preco,
-                        stock: data.estoque,
-                        emoji: data.emoji,
-                        category: data.categoria
-                    });
-                    showToast('Produto cadastrado! 🚀', 'success');
-                } catch (e) {
-                    console.error(e);
-                    showToast('Erro ao salvar no banco', 'error');
-                    return;
-                }
-            } else {
-                // Modo offline (ID temporário)
-                products.push({ id: Date.now(), name, price, stock, emoji, category });
-                showToast('Salvo offline', 'warning');
-            }
-
-            // Limpar form
-            document.getElementById('newProdName').value = '';
-            document.getElementById('newProdPrice').value = '';
-            document.getElementById('newProdStock').value = '';
-            renderAll();
-            saveLocalData();
-        }
-
-        async function deleteProduct(id) {
-            if(!confirm("Excluir este produto?")) return;
-
-            if(isOnline) {
-                const { error } = await supabase.from('produtos').delete().eq('id', id);
-                if(error) {
-                    showToast("Erro ao excluir", "error");
-                    return;
-                }
-            }
-            
-            products = products.filter(p => p.id !== id);
-            renderAll();
-            saveLocalData();
-            showToast("Produto removido", "success");
-        }
-
-        // --- RENDERIZAÇÃO GERAL ---
-        function renderAll() {
-            renderPOS();
-            renderStockTable();
-            renderHistory();
-            renderDashboard();
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
             renderCart();
         }
 
-        function renderPOS() {
-            const grid = document.getElementById('productsGrid');
-            const search = document.getElementById('searchInput').value.toLowerCase();
+        function startCheckout() {
+            const total = cart.reduce((acc, i) => acc + (i.preco * i.qty), 0);
+            document.getElementById('payTotal').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('payModal').style.display = 'flex';
+        }
+
+        async function finishSale(method) {
+            if(!isOnline) return alert("Vendas apenas Online nesta versão de teste.");
+
+            const total = cart.reduce((acc, i) => acc + (i.preco * i.qty), 0);
+            const saleId = 'V' + Date.now();
+
+            try {
+                // 1. Gravar Venda
+                const { error: errVenda } = await supabase.from('vendas').insert({
+                    id: saleId,
+                    total: total,
+                    metodo_pagamento: method,
+                    itens_count: cart.reduce((acc, i) => acc + i.qty, 0)
+                });
+                if(errVenda) throw errVenda;
+
+                // 2. Gravar Itens
+                const itensPayload = cart.map(i => ({
+                    venda_id: saleId,
+                    produto_id: i.id,
+                    nome_produto: i.nome,
+                    quantidade: i.qty,
+                    preco_unitario: i.preco,
+                    total_item: i.preco * i.qty
+                }));
+                const { error: errItens } = await supabase.from('itens_venda').insert(itensPayload);
+                if(errItens) throw errItens;
+
+                // 3. Atualizar Estoque (Simples)
+                for(let item of cart) {
+                    const prod = products.find(p => p.id === item.id);
+                    await supabase.from('produtos').update({ estoque: prod.estoque - item.qty }).eq('id', item.id);
+                }
+
+                alert("Venda realizada com sucesso! 🎉");
+                cart = [];
+                closeModal();
+                renderCart();
+                loadProducts(); // Atualiza estoque visual
+
+            } catch (err) {
+                alert("Erro ao processar venda: " + err.message);
+                console.error(err);
+            }
+        }
+
+        // --- UI AUXILIAR ---
+        function renderProducts() {
+            const grid = document.getElementById('productsContainer');
+            const term = document.getElementById('searchProd').value.toLowerCase();
             grid.innerHTML = '';
-
-            const filtered = products.filter(p => p.name.toLowerCase().includes(search));
-
-            filtered.forEach(p => {
+            
+            products.filter(p => p.nome.toLowerCase().includes(term)).forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.onclick = () => addToCart(p.id);
-                
-                let stockBadge = '';
-                if(p.stock < 5) stockBadge = 'stock-low';
-
                 card.innerHTML = `
-                    <span class="product-stock ${stockBadge}">${p.stock} un</span>
-                    <span class="product-emoji">${p.emoji}</span>
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-price">R$ ${p.price.toFixed(2)}</div>
+                    <span class="p-emoji">${p.emoji}</span>
+                    <div><b>${p.nome}</b></div>
+                    <div class="p-price">R$ ${p.preco.toFixed(2)}</div>
+                    <small>Estoque: ${p.estoque}</small>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function renderStockTable() {
-            const tbody = document.getElementById('stockTableBody');
+        function renderStock() {
+            const tbody = document.getElementById('stockTable');
             tbody.innerHTML = '';
             products.forEach(p => {
                 tbody.innerHTML += `
                     <tr>
-                        <td>${p.emoji} ${p.name}</td>
-                        <td>R$ ${p.price.toFixed(2)}</td>
-                        <td>${p.stock}</td>
-                        <td>${p.category}</td>
-                        <td>
-                            <button onclick="deleteProduct(${p.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
+                        <td>${p.emoji} ${p.nome}</td>
+                        <td>R$ ${p.preco.toFixed(2)}</td>
+                        <td>${p.estoque}</td>
+                        <td><button onclick="deleteProduct(${p.id})" style="color:red;border:none;background:none;cursor:pointer;">🗑️</button></td>
                     </tr>
                 `;
             });
         }
 
-        function renderHistory() {
-            const tbody = document.getElementById('salesTableBody');
+        async function loadSales() {
+            if(!isOnline) return;
+            const { data } = await supabase.from('vendas').select('*').order('data_hora', {ascending:false}).limit(10);
+            const tbody = document.getElementById('salesTable');
             tbody.innerHTML = '';
-            salesHistory.forEach(s => {
-                // Tenta contar itens de forma robusta (seja objeto supabase ou local)
-                const itemsCount = s.items ? s.items.length : 0; 
-                tbody.innerHTML += `
-                    <tr>
-                        <td><small>${s.id.slice(0,8)}...</small></td>
-                        <td>${s.date}</td>
-                        <td>${itemsCount} itens</td>
-                        <td style="color:var(--success); font-weight:bold;">R$ ${s.total.toFixed(2)}</td>
-                        <td>${s.method}</td>
-                    </tr>
-                `;
-            });
+            if(data) {
+                data.forEach(s => {
+                    tbody.innerHTML += `<tr>
+                        <td>${s.id.slice(0,8)}</td>
+                        <td>${new Date(s.data_hora).toLocaleDateString()}</td>
+                        <td>R$ ${s.total.toFixed(2)}</td>
+                        <td>${s.metodo_pagamento}</td>
+                    </tr>`;
+                });
+            }
         }
 
-        function renderDashboard() {
-             // Simples dashboard
-             const today = new Date().toLocaleDateString();
-             const salesToday = salesHistory.filter(s => s.date.includes(today));
-             const totalToday = salesToday.reduce((acc, s) => acc + s.total, 0);
-
-             document.getElementById('dashTotalToday').innerText = `R$ ${totalToday.toFixed(2)}`;
-             document.getElementById('dashCountToday').innerText = salesToday.length;
-        }
-
-        // Helpers
-        function saveLocalData() {
-            localStorage.setItem('products', JSON.stringify(products));
-            localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
-        }
-
-        function switchTab(tabId) {
+        function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
         }
 
-        function showToast(msg, type = 'success') {
-            const t = document.getElementById('toast');
-            t.className = `toast show ${type}`;
-            t.querySelector('span').innerText = msg;
-            setTimeout(() => t.classList.remove('show'), 3000);
+        function closeModal() { document.getElementById('payModal').style.display = 'none'; }
+        function clearForm() {
+            document.getElementById('nNome').value = '';
+            document.getElementById('nPreco').value = '';
+            document.getElementById('nEstoque').value = '';
         }
-
-        function clearCart() {
-            cart = [];
-            renderCart();
-        }
-
-        // Start
-        window.onload = init;
 
     </script>
 </body>
